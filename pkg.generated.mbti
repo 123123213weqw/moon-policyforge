@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "123123213weqw/moon_policyforge"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile(String) -> Expression raise
+
+pub fn evaluate_expression(String, Value, budget? : Int) -> Value raise
+
+pub fn execute(Json) -> Json raise
+
+pub fn from_json(Json) -> Value
+
+pub fn run(Value) -> Value raise
+
+// Errors
+pub(all) suberror InputError {
+  InputError(String)
+} derive(Eq, Show)
+
+// Types and methods
+type Evaluation
+
+pub(all) enum Expression {
+  Literal(Value)
+  Variable(String)
+  Unary(String, Expression)
+  Binary(String, Expression, Expression)
+  Call(String, Array[Expression])
+}
+
+type Parser
+
+type Rule
+
+pub(all) enum Value {
+  Null
+  Bool(Bool)
+  Number(Double)
+  String(String)
+  Array(Array[Value])
+  Object(Map[String, Value])
+} derive(Eq, @debug.Debug)
+pub fn Value::stringify(Self) -> String
+pub fn Value::to_json(Self) -> Json
+
+// Type aliases
+
+// Traits
