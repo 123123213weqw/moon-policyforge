@@ -555,3 +555,25 @@ Expected result fields:
 ```
 
 `upper` requires a string argument and returns the uppercase form.
+
+## trim
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "trim(code)",
+  "facts": {
+    "code": "  AB  "
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": "AB"
+}
+```
+
+`trim` removes leading and trailing whitespace from a string.

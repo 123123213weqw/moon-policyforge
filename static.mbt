@@ -189,6 +189,10 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[0], "string", "upper"))
           "string"
         }
+        ("trim", 1) => {
+          ignore(self.require(kinds[0], "string", "trim"))
+          "string"
+        }
         ("abs", 1) => {
           ignore(self.require(kinds[0], "number", "abs"))
           "number"

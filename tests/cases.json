@@ -424,5 +424,31 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "trim function",
+    "request": {
+      "operation": "evaluate",
+      "expression": "trim(code)",
+      "facts": {
+        "code": "  AB  "
+      }
+    },
+    "expected": {
+      "value": "AB"
+    },
+    "error": false
+  },
+  {
+    "name": "trim requires string",
+    "request": {
+      "operation": "evaluate",
+      "expression": "trim(flag)",
+      "facts": {
+        "flag": true
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
