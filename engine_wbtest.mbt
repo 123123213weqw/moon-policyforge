@@ -408,3 +408,31 @@ test "check string concat type mismatch" {
   assert_eq(test_at(result, ["ok"]), parse_value("false"))
 }
 
+
+
+///|
+test "upper function" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"upper(name) == \\\"BOB\\\"\",\"facts\":{\"name\":\"Bob\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "upper requires string" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"upper(age)\",\"facts\":{\"age\":3}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

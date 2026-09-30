@@ -163,7 +163,7 @@ fn Parser::expression(
       if self.take() != ")" {
         raise InputError("expected closing parenthesis")
       }
-      if !["exists", "len", "contains", "lower", "abs"].contains(token) {
+      if !["exists", "len", "contains", "lower", "upper", "abs"].contains(token) {
         raise InputError("unknown function: " + token)
       }
       Call(token, args)
@@ -293,6 +293,7 @@ fn evaluate(
         ("contains", [String(s), String(part)]) => Bool(s.contains(part))
         ("contains", [Array(a), v]) => Bool(a.contains(v))
         ("lower", [String(s)]) => String(s.to_lower())
+        ("upper", [String(s)]) => String(s.to_upper())
         ("abs", [Number(n)]) => Number(n.abs())
         _ => raise InputError("invalid function argument(s): " + name)
       }

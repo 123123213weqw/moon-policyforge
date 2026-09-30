@@ -164,7 +164,10 @@
       "operation": "evaluate",
       "expression": "\"g\" in tags",
       "facts": {
-        "tags": ["g", "s"]
+        "tags": [
+          "g",
+          "s"
+        ]
       }
     },
     "expected": {
@@ -315,7 +318,10 @@
     "expected": {
       "results/0/result/conflict": true,
       "results/0/result/decision": null,
-      "results/0/result/conflict_ids": ["adult", "fallback"]
+      "results/0/result/conflict_ids": [
+        "adult",
+        "fallback"
+      ]
     },
     "error": false
   },
@@ -392,5 +398,31 @@
       "rules/0/condition_type": "boolean"
     },
     "error": false
+  },
+  {
+    "name": "upper function",
+    "request": {
+      "operation": "evaluate",
+      "expression": "upper(name)",
+      "facts": {
+        "name": "Bob"
+      }
+    },
+    "expected": {
+      "value": "BOB"
+    },
+    "error": false
+  },
+  {
+    "name": "upper requires string",
+    "request": {
+      "operation": "evaluate",
+      "expression": "upper(age)",
+      "facts": {
+        "age": 3
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

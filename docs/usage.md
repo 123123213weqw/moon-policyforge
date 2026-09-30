@@ -533,3 +533,25 @@ Expected: `decision` is `"allow"`, `conflict` false, `conflict_ids` empty.
 Quality triage over a batch: `auto_pass`, `manual_review` (0.80–0.95), `reject` (< 0.80) and `quarantine` (completeness < 0.5). The `all` mode returns every applicable label per record; ties break by rule ID order.
 
 Expected decisions: `["auto_pass"]`, `["manual_review"]`, `["reject", "quarantine"]`.
+
+## upper
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "upper(name)",
+  "facts": {
+    "name": "Bob"
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": "BOB"
+}
+```
+
+`upper` requires a string argument and returns the uppercase form.
