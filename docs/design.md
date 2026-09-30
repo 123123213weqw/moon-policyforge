@@ -1,11 +1,17 @@
-# Moon PolicyForge architecture
+# Implemented architecture
 
-Status: development plan; functionality must be checked against release documentation.
+## Core
 
-目标：把声明式规则、输入事实、决策与解释链作为可用的通用决策系统。
+An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets; rule priority; first/all/unique decisions; conflict flags; per-record errors; condition traces; rule-set diff.
 
-核心模块：表达式词法与语法；类型检查；有界求值；决策表；规则优先级；冲突诊断；解释追踪；批量评估与版本比较。表达式语义有规范、错误模型与资源上限，不能只是条件函数集合。
+## Boundaries
 
-三个场景：订单折扣与优惠互斥决策；应用准入条件评估；数据质量分级与处置路由。每场景有完整事实数据、规则文件和人工可核验的预期决策。准入场景用于验证规则决策，不代替身份认证及完整安全系统。
+A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are checked; static type inference is not included. All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
 
-验收：固定真值与类型语料、独立参考求值、十万事实的决策统计一致；解释链能定位每个决定的命中规则。失败验证覆盖非法类型、缺字段、冲突策略、表达式资源超限和非法引用。十月不增加通用脚本执行或外部代码插件。
+## Integration
+
+The core accepts semantic values and returns deterministic JSON-shaped reports. Host adapters handle files, network or processes; they invoke the compiled MoonBit engine. The CLI package declares `supported_targets = "js"`; other backends test the portable core.
+
+## Validation evidence
+
+Fixture cases are hand-checked assertions. Independent reference checks and integration scripts are runnable from a clean checkout. CI executes four core backends and host checks. Historical proposal targets are not release results.
