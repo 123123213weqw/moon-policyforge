@@ -157,5 +157,240 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "in operator",
+    "request": {
+      "operation": "evaluate",
+      "expression": "\"g\" in tags",
+      "facts": {
+        "tags": ["g", "s"]
+      }
+    },
+    "expected": {
+      "value": true
+    },
+    "error": false
+  },
+  {
+    "name": "string concat",
+    "request": {
+      "operation": "evaluate",
+      "expression": "\"a\" + \"b\"",
+      "facts": {}
+    },
+    "expected": {
+      "value": "ab"
+    },
+    "error": false
+  },
+  {
+    "name": "nonfinite result",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1e308 * 10",
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "unknown function",
+    "request": {
+      "operation": "evaluate",
+      "expression": "foo(1)",
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "unknown operation",
+    "request": {
+      "operation": "wat"
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "unknown decision mode",
+    "request": {
+      "rules": [
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {},
+      "mode": "sometimes"
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "budget out of range",
+    "request": {
+      "rules": [
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {},
+      "budget": 0
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "evaluate budget parameter",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1 + 1",
+      "facts": {},
+      "budget": 100
+    },
+    "expected": {
+      "value": 2
+    },
+    "error": false
+  },
+  {
+    "name": "evaluate budget exceeded",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1+1+1+1+1+1+1+1+1+1+1+1+1+1",
+      "facts": {},
+      "budget": 10
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "missing fact per-record error",
+    "request": {
+      "rules": [
+        {
+          "id": "r",
+          "when": "amount > 5",
+          "output": "hit"
+        }
+      ],
+      "facts": [
+        {
+          "amount": 10
+        },
+        {}
+      ]
+    },
+    "expected": {
+      "results/0/result/decision": "hit",
+      "results/1/index": 1
+    },
+    "error": false
+  },
+  {
+    "name": "conflict ids",
+    "request": {
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {
+        "age": 20
+      },
+      "mode": "unique"
+    },
+    "expected": {
+      "results/0/result/conflict": true,
+      "results/0/result/decision": null,
+      "results/0/result/conflict_ids": ["adult", "fallback"]
+    },
+    "error": false
+  },
+  {
+    "name": "check valid expression",
+    "request": {
+      "operation": "check",
+      "expression": "amount > 5",
+      "schema": {
+        "amount": "number"
+      }
+    },
+    "expected": {
+      "ok": true,
+      "type": "boolean"
+    },
+    "error": false
+  },
+  {
+    "name": "check expression type error",
+    "request": {
+      "operation": "check",
+      "expression": "amount > \"x\"",
+      "schema": {
+        "amount": "number"
+      }
+    },
+    "expected": {
+      "ok": false
+    },
+    "error": false
+  },
+  {
+    "name": "check rules duplicate id",
+    "request": {
+      "operation": "check",
+      "rules": [
+        {
+          "id": "a",
+          "when": "true",
+          "output": "x"
+        },
+        {
+          "id": "a",
+          "when": "true",
+          "output": "y"
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "rules/1/valid": false
+    },
+    "error": false
+  },
+  {
+    "name": "check valid rules",
+    "request": {
+      "operation": "check",
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        }
+      ],
+      "schema": {
+        "age": "number"
+      }
+    },
+    "expected": {
+      "ok": true,
+      "rules/0/condition_type": "boolean"
+    },
+    "error": false
   }
 ]

@@ -3,13 +3,13 @@
 Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API.
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
-- Package: `123123213weqw/moon_policyforge@0.1.0`
+- Package: `123123213weqw/moon_policyforge@0.2.0`
 - License: Apache-2.0
-- Release scope: **0.1.0 initial implementation**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
+- Release scope: **0.2.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
 
 ## Implemented
 
-An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets; rule priority; first/all/unique decisions; conflict flags; per-record errors; condition traces; rule-set diff.
+An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets (shared by decide and evaluate); rule priority; first/all/unique decisions; conflict flags with conflicting rule IDs; per-record errors; condition traces; rule-set diff; an opt-in schema-based static checker for expressions and rule sets; three complete scenario fixtures (discount, admission, data quality) and a 100k-fact scale validation against an independent oracle.
 
 ## Build and run
 
@@ -18,8 +18,8 @@ Use MoonBit and Node.js 24. The core library supports JS, wasm, wasm-gc and nati
 ```sh
 moon update
 moon build --target js
-moon run cmd/main --target js -- examples/scenario-1.json
-node _build/js/debug/build/cmd/main/main.js examples/scenario-1.json
+moon run cmd/main --target js -- examples/discount-scenario.json
+node _build/js/debug/build/cmd/main/main.js examples/admission-scenario.json
 ```
 
 Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at most 16 MiB. Successful requests print one JSON result; invalid requests exit nonzero. The host runner is a separate process and does not edit the input request file.
@@ -27,7 +27,7 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 ## Library use
 
 ```sh
-moon add 123123213weqw/moon_policyforge@0.1.0
+moon add 123123213weqw/moon_policyforge@0.2.0
 ```
 
 In the consumer's `moon.pkg`:
@@ -47,6 +47,17 @@ fn example(request : Json) -> Json raise {
 
 `execute(Json) -> Json raise` is the standard JSON boundary. `from_json`, `Value::to_json`, and `run(Value) -> Value raise` provide a typed semantic value interface. Object ordering is not significant; numeric values use finite Double. Public domain functions are listed in `pkg.generated.mbti`.
 
+## Static checking
+
+The `check` operation validates an expression or a rule set without evaluating it against facts:
+
+```sh
+echo '{"operation":"check","expression":"amount > \"x\"","schema":{"amount":"number"}}' | \
+  node _build/js/debug/build/cmd/main/main.js -
+```
+
+The optional `schema` maps dotted fact paths to one of `boolean`, `number`, `string`, `null`, `array`, `object`. The checker mirrors runtime semantics exactly and only reports what the evaluator would reject; fact paths absent from the schema are `unknown` and defer to runtime, so a schema-less check still catches structural errors. Rule checks cover duplicate IDs, missing conditions, non-boolean conditions, non-finite priorities, uncompilable `compute` expressions, and rules with neither `output` nor `compute`.
+
 ## Tests
 
 ```sh
@@ -57,12 +68,13 @@ moon test --target native  # requires a C compiler
 moon build --target js
 node scripts/check.mjs
 python -B scripts/reference.py
+python -B scripts/scale_check.py
 ```
 
-There are 9 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms. Fixtures are synthetic and are not presented as production adoption evidence. See [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 24 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. See [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 
-A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are checked; static type inference is not included. All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
+A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are always checked at evaluation. A full static type inference is not included; the opt-in `check` operation reports what an optional caller-supplied schema proves, and unknown fact paths defer to runtime. All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches, with the conflicting IDs in `conflict_ids`. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
 
 See [source and dependency attribution](THIRD_PARTY.md). This release does not establish competition eligibility or organizer acceptance.

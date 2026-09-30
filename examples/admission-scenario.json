@@ -1,0 +1,37 @@
+{
+  "operation": "decide",
+  "mode": "unique",
+  "rules": [
+    {
+      "id": "deny_rooted",
+      "priority": 3,
+      "when": "exists(device.rooted) && device.rooted",
+      "output": "deny"
+    },
+    {
+      "id": "allow_attested",
+      "priority": 2,
+      "when": "device.os == \"android\" && device.api_level >= 29 && device.attested",
+      "output": "allow"
+    },
+    {
+      "id": "missing_api_level",
+      "priority": 1,
+      "when": "!exists(device.api_level)",
+      "output": "missing_info"
+    },
+    {
+      "id": "deny_unsupported",
+      "priority": 1,
+      "when": "device.os == \"windows_phone\"",
+      "output": "deny"
+    }
+  ],
+  "facts": {
+    "device": {
+      "os": "android",
+      "api_level": 31,
+      "attested": true
+    }
+  }
+}

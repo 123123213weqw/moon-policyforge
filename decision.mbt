@@ -81,6 +81,11 @@ fn decide(
     }
   }
   let conflict = mode == "unique" && matched.length() > 1
+  let conflict_ids : Array[String] = if conflict {
+    matched.map(fn(item) { str(get(item, "id")) })
+  } else {
+    []
+  }
   let decision = if matched.is_empty() {
     fallback
   } else if conflict {
@@ -93,6 +98,7 @@ fn decide(
   record([
     ("decision", decision),
     ("conflict", Bool(conflict)),
+    ("conflict_ids", strings(conflict_ids)),
     ("matched", Array(matched)),
     ("evaluated", Array(evaluated)),
     ("steps", Number((budget - state.fuel).to_double())),
@@ -102,13 +108,21 @@ fn decide(
 ///|
 pub fn run(request : Value) -> Value raise {
   let operation = optional_str(get(request, "operation"), "decide")
+  if operation == "check" {
+    return check_request(request)
+  }
   if operation == "evaluate" {
+    let budget = optional_num(get(request, "budget"), 10000.0).to_int()
+    if budget <= 0 || budget > 1000000 {
+      raise InputError("budget out of range")
+    }
     return record([
       (
         "value",
         evaluate_expression(
           str(get(request, "expression")),
           get(request, "facts"),
+          budget=budget,
         ),
       ),
     ])

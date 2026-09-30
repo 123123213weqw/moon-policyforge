@@ -1,0 +1,40 @@
+{
+  "operation": "decide",
+  "mode": "first",
+  "rules": [
+    {
+      "id": "vip_large_order",
+      "priority": 3,
+      "when": "user.tier == \"gold\" && cart.total >= 500",
+      "compute": "cart.total * 0.15"
+    },
+    {
+      "id": "gold_member",
+      "priority": 2,
+      "when": "user.tier == \"gold\"",
+      "compute": "cart.total * 0.10"
+    },
+    {
+      "id": "first_order_bonus",
+      "priority": 1,
+      "when": "user.prior_orders == 0",
+      "output": 20
+    },
+    {
+      "id": "no_discount",
+      "priority": 0,
+      "when": "true",
+      "output": 0
+    }
+  ],
+  "facts": {
+    "user": {
+      "tier": "gold",
+      "prior_orders": 2
+    },
+    "cart": {
+      "total": 680,
+      "items": 3
+    }
+  }
+}

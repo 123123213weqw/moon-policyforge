@@ -1,0 +1,53 @@
+{
+  "operation": "decide",
+  "mode": "all",
+  "rules": [
+    {
+      "id": "auto_pass",
+      "priority": 3,
+      "when": "quality.score >= 0.95 && quality.completeness == 1.0",
+      "output": "auto_pass"
+    },
+    {
+      "id": "manual_review",
+      "priority": 2,
+      "when": "quality.score >= 0.80 && quality.score < 0.95",
+      "output": "manual_review"
+    },
+    {
+      "id": "reject",
+      "priority": 1,
+      "when": "quality.score < 0.80",
+      "output": "reject"
+    },
+    {
+      "id": "quarantine",
+      "priority": 1,
+      "when": "quality.completeness < 0.5",
+      "output": "quarantine"
+    }
+  ],
+  "facts": [
+    {
+      "record_id": "r-0001",
+      "quality": {
+        "score": 0.97,
+        "completeness": 1.0
+      }
+    },
+    {
+      "record_id": "r-0002",
+      "quality": {
+        "score": 0.85,
+        "completeness": 0.9
+      }
+    },
+    {
+      "record_id": "r-0003",
+      "quality": {
+        "score": 0.6,
+        "completeness": 0.4
+      }
+    }
+  ]
+}

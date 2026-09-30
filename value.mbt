@@ -9,6 +9,12 @@ pub(all) enum Value {
 } derive(Eq, Debug)
 
 ///|
+pub extend Value with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Value with Eq::{not_equal, equal}
+
+///|
 pub fn from_json(value : Json) -> Value {
   match value {
     Json::Null => Null
