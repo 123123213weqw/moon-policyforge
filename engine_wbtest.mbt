@@ -464,3 +464,37 @@ test "trim requires string" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "starts_with and ends_with" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"starts_with(code, \\\"PRE\\\") && ends_with(code, \\\"SUF\\\")\",\"facts\":{\"code\":\"PRE-SUF\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+  let negative = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"ends_with(code, \\\"PRE\\\")\",\"facts\":{\"code\":\"PRE-SUF\"}}",
+    ),
+  )
+  assert_eq(test_at(negative, ["value"]), parse_value("false"))
+}
+
+///|
+test "starts_with requires string arguments" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"starts_with(code, 1)\",\"facts\":{\"code\":\"PRE\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

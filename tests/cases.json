@@ -450,5 +450,31 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "starts_with and ends_with",
+    "request": {
+      "operation": "evaluate",
+      "expression": "starts_with(code, \"PRE\") && ends_with(code, \"SUF\")",
+      "facts": {
+        "code": "PRE-SUF"
+      }
+    },
+    "expected": {
+      "value": true
+    },
+    "error": false
+  },
+  {
+    "name": "starts_with type error",
+    "request": {
+      "operation": "evaluate",
+      "expression": "starts_with(code, 1)",
+      "facts": {
+        "code": "PRE"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

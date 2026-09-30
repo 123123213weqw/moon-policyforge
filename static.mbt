@@ -193,6 +193,16 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[0], "string", "trim"))
           "string"
         }
+        ("starts_with", 2) => {
+          ignore(self.require(kinds[0], "string", "starts_with"))
+          ignore(self.require(kinds[1], "string", "starts_with"))
+          "boolean"
+        }
+        ("ends_with", 2) => {
+          ignore(self.require(kinds[0], "string", "ends_with"))
+          ignore(self.require(kinds[1], "string", "ends_with"))
+          "boolean"
+        }
         ("abs", 1) => {
           ignore(self.require(kinds[0], "number", "abs"))
           "number"

@@ -577,3 +577,25 @@ Expected result fields:
 ```
 
 `trim` removes leading and trailing whitespace from a string.
+
+## starts_with and ends_with
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "starts_with(code, \"PRE\") && ends_with(code, \"SUF\")",
+  "facts": {
+    "code": "PRE-SUF"
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": true
+}
+```
+
+Both predicates require two string arguments.
