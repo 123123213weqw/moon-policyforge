@@ -163,7 +163,7 @@ fn Parser::expression(
       if self.take() != ")" {
         raise InputError("expected closing parenthesis")
       }
-      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil"].contains(token) {
+      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil", "round"].contains(token) {
         raise InputError("unknown function: " + token)
       }
       Call(token, args)
@@ -311,6 +311,7 @@ fn evaluate(
         ("abs", [Number(n)]) => Number(n.abs())
         ("floor", [Number(n)]) => Number(n.floor())
         ("ceil", [Number(n)]) => Number(n.ceil())
+        ("round", [Number(n)]) => Number(n.round())
         _ => raise InputError("invalid function argument(s): " + name)
       }
     }
