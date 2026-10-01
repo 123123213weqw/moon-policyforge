@@ -498,3 +498,31 @@ test "starts_with requires string arguments" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "replace function" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"replace(code, \\\"-\\\", \\\"_\\\") == \\\"A_B\\\"\",\"facts\":{\"code\":\"A-B\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "replace requires three strings" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"replace(code, \\\"-\\\", 1)\",\"facts\":{\"code\":\"A-B\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

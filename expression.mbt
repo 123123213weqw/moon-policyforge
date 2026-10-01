@@ -163,7 +163,7 @@ fn Parser::expression(
       if self.take() != ")" {
         raise InputError("expected closing parenthesis")
       }
-      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "abs"].contains(token) {
+      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "abs"].contains(token) {
         raise InputError("unknown function: " + token)
       }
       Call(token, args)
@@ -297,6 +297,8 @@ fn evaluate(
         ("trim", [String(s)]) => String(s.trim().to_string())
         ("starts_with", [String(s), String(prefix)]) => Bool(s.has_prefix(prefix))
         ("ends_with", [String(s), String(suffix)]) => Bool(s.has_suffix(suffix))
+        ("replace", [String(s), String(old), String(new)]) =>
+          String(s.replace(old=old, new=new))
         ("abs", [Number(n)]) => Number(n.abs())
         _ => raise InputError("invalid function argument(s): " + name)
       }

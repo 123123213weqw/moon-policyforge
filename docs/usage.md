@@ -599,3 +599,25 @@ Expected result fields:
 ```
 
 Both predicates require two string arguments.
+
+## replace
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "replace(code, \"-\", \"_\")",
+  "facts": {
+    "code": "A-B"
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": "A_B"
+}
+```
+
+`replace` substitutes every occurrence of the second argument with the third and requires three string arguments.

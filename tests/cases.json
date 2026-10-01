@@ -476,5 +476,31 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "replace function",
+    "request": {
+      "operation": "evaluate",
+      "expression": "replace(code, \"-\", \"_\")",
+      "facts": {
+        "code": "A-B"
+      }
+    },
+    "expected": {
+      "value": "A_B"
+    },
+    "error": false
+  },
+  {
+    "name": "replace requires strings",
+    "request": {
+      "operation": "evaluate",
+      "expression": "replace(code, \"-\", 1)",
+      "facts": {
+        "code": "A-B"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
