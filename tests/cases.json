@@ -502,5 +502,31 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "substring function",
+    "request": {
+      "operation": "evaluate",
+      "expression": "substring(code, 1, 3)",
+      "facts": {
+        "code": "ABCDE"
+      }
+    },
+    "expected": {
+      "value": "BC"
+    },
+    "error": false
+  },
+  {
+    "name": "substring out of bounds",
+    "request": {
+      "operation": "evaluate",
+      "expression": "substring(code, 4, 9)",
+      "facts": {
+        "code": "AB"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

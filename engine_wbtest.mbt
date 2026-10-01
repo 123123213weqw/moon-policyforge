@@ -526,3 +526,31 @@ test "replace requires three strings" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "substring function" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"substring(code, 1, 3)\",\"facts\":{\"code\":\"ABCDE\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("\"BC\""))
+}
+
+///|
+test "substring out of bounds" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"substring(code, 4, 9)\",\"facts\":{\"code\":\"AB\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

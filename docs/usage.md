@@ -621,3 +621,25 @@ Expected result fields:
 ```
 
 `replace` substitutes every occurrence of the second argument with the third and requires three string arguments.
+
+## substring
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "substring(code, 1, 3)",
+  "facts": {
+    "code": "ABCDE"
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": "BC"
+}
+```
+
+`substring` takes a string, an inclusive start index and an exclusive end index. Indices outside the string, or a start after the end, are input errors.

@@ -209,6 +209,12 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[2], "string", "replace"))
           "string"
         }
+        ("substring", 3) => {
+          ignore(self.require(kinds[0], "string", "substring"))
+          ignore(self.require(kinds[1], "number", "substring"))
+          ignore(self.require(kinds[2], "number", "substring"))
+          "string"
+        }
         ("abs", 1) => {
           ignore(self.require(kinds[0], "number", "abs"))
           "number"
