@@ -582,3 +582,31 @@ test "floor requires number" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "round function" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"round(score) == 3\",\"facts\":{\"score\":2.6}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "round requires number" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"round(name)\",\"facts\":{\"name\":\"x\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
