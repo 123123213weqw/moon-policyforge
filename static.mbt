@@ -227,6 +227,10 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[0], "number", "ceil"))
           "number"
         }
+        ("round", 1) => {
+          ignore(self.require(kinds[0], "number", "round"))
+          "number"
+        }
         (_, _) => {
           self.fail("unknown function or wrong arity: " + name)
           "unknown"
