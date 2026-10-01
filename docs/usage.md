@@ -643,3 +643,25 @@ Expected result fields:
 ```
 
 `substring` takes a string, an inclusive start index and an exclusive end index. Indices outside the string, or a start after the end, are input errors.
+
+## floor and ceil
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "floor(price)",
+  "facts": {
+    "price": 3.2
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": 3
+}
+```
+
+`floor` rounds down, `ceil` rounds up; both require a number.

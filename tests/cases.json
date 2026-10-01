@@ -528,5 +528,45 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "floor value",
+    "request": {
+      "operation": "evaluate",
+      "expression": "floor(price)",
+      "facts": {
+        "price": 3.2
+      }
+    },
+    "expected": {
+      "value": 3
+    },
+    "error": false
+  },
+  {
+    "name": "ceil value",
+    "request": {
+      "operation": "evaluate",
+      "expression": "ceil(price)",
+      "facts": {
+        "price": 3.2
+      }
+    },
+    "expected": {
+      "value": 4
+    },
+    "error": false
+  },
+  {
+    "name": "floor requires number",
+    "request": {
+      "operation": "evaluate",
+      "expression": "floor(name)",
+      "facts": {
+        "name": "x"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

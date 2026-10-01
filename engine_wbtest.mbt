@@ -554,3 +554,31 @@ test "substring out of bounds" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "floor and ceil" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"floor(price) == 3 && ceil(price) == 4\",\"facts\":{\"price\":3.2}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "floor requires number" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"floor(name)\",\"facts\":{\"name\":\"x\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
