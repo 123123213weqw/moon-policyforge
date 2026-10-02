@@ -665,3 +665,25 @@ Expected result fields:
 ```
 
 `floor` rounds down, `ceil` rounds up; both require a number.
+
+## round
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "round(score)",
+  "facts": {
+    "score": 2.6
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": 3
+}
+```
+
+`round` rounds to the nearest integer and requires a number.
