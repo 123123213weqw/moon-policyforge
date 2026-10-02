@@ -568,5 +568,31 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "round value",
+    "request": {
+      "operation": "evaluate",
+      "expression": "round(score)",
+      "facts": {
+        "score": 2.6
+      }
+    },
+    "expected": {
+      "value": 3
+    },
+    "error": false
+  },
+  {
+    "name": "round requires number",
+    "request": {
+      "operation": "evaluate",
+      "expression": "round(name)",
+      "facts": {
+        "name": "x"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
