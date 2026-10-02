@@ -687,3 +687,26 @@ Expected result fields:
 ```
 
 `round` rounds to the nearest integer and requires a number.
+
+## min and max
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "min(a, b) + max(a, b)",
+  "facts": {
+    "a": 5,
+    "b": 2
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": 7
+}
+```
+
+`min` and `max` take two numbers.
