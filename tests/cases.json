@@ -594,5 +594,33 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "min and max",
+    "request": {
+      "operation": "evaluate",
+      "expression": "min(a, b) + max(a, b)",
+      "facts": {
+        "a": 5,
+        "b": 2
+      }
+    },
+    "expected": {
+      "value": 7
+    },
+    "error": false
+  },
+  {
+    "name": "max requires numbers",
+    "request": {
+      "operation": "evaluate",
+      "expression": "max(a, b)",
+      "facts": {
+        "a": 1,
+        "b": "x"
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
