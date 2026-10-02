@@ -610,3 +610,31 @@ test "round requires number" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "min and max" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"min(a, b) == 2 && max(a, b) == 5\",\"facts\":{\"a\":5,\"b\":2}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "max requires numbers" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"max(a, b)\",\"facts\":{\"a\":1,\"b\":\"x\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
