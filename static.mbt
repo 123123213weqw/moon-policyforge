@@ -231,6 +231,10 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[0], "number", "round"))
           "number"
         }
+        ("sum", 1) => {
+          ignore(self.require(kinds[0], "array", "sum"))
+          "number"
+        }
         ("min", 2) | ("max", 2) => {
           ignore(self.require(kinds[0], "number", name))
           ignore(self.require(kinds[1], "number", name))
