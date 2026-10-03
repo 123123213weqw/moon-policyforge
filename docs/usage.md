@@ -710,3 +710,25 @@ Expected result fields:
 ```
 
 `min` and `max` take two numbers.
+
+## sum
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "sum(prices)",
+  "facts": {
+    "prices": [1.5, 2.5, 2]
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": 6
+}
+```
+
+`sum` takes an array of numbers; any other element type is an input error.
