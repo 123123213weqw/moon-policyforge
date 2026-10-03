@@ -622,5 +622,38 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "sum array",
+    "request": {
+      "operation": "evaluate",
+      "expression": "sum(prices)",
+      "facts": {
+        "prices": [
+          1.5,
+          2.5,
+          2
+        ]
+      }
+    },
+    "expected": {
+      "value": 6
+    },
+    "error": false
+  },
+  {
+    "name": "sum requires numeric elements",
+    "request": {
+      "operation": "evaluate",
+      "expression": "sum(prices)",
+      "facts": {
+        "prices": [
+          1,
+          "x"
+        ]
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
