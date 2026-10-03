@@ -638,3 +638,31 @@ test "max requires numbers" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "sum array" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"sum(prices) == 6\",\"facts\":{\"prices\":[1.5,2.5,2]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "sum requires numeric elements" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"sum(prices)\",\"facts\":{\"prices\":[1,\"x\"]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
