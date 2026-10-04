@@ -655,5 +655,38 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "concat array",
+    "request": {
+      "operation": "evaluate",
+      "expression": "concat(parts)",
+      "facts": {
+        "parts": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    },
+    "expected": {
+      "value": "abc"
+    },
+    "error": false
+  },
+  {
+    "name": "concat requires string elements",
+    "request": {
+      "operation": "evaluate",
+      "expression": "concat(parts)",
+      "facts": {
+        "parts": [
+          "a",
+          1
+        ]
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
