@@ -666,3 +666,31 @@ test "sum requires numeric elements" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "concat array" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"concat(parts) == \\\"abc\\\"\",\"facts\":{\"parts\":[\"a\",\"b\",\"c\"]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "concat requires string elements" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"concat(parts)\",\"facts\":{\"parts\":[\"a\",1]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
