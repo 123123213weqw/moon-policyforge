@@ -688,5 +688,46 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "serialize canonical",
+    "request": {
+      "operation": "serialize",
+      "expression": "  1+2*3  "
+    },
+    "expected": {
+      "canonical": "1 + 2 * 3",
+      "nodes": 5,
+      "depth": 3
+    },
+    "error": false
+  },
+  {
+    "name": "serialize grouping",
+    "request": {
+      "operation": "serialize",
+      "expression": "(1 + 2) * 3"
+    },
+    "expected": {
+      "canonical": "(1 + 2) * 3"
+    },
+    "error": false
+  },
+  {
+    "name": "roundtrip equivalence",
+    "request": {
+      "operation": "roundtrip",
+      "expression": "(price - discount) * quantity >= 100",
+      "facts": {
+        "price": 50,
+        "discount": 10,
+        "quantity": 3
+      }
+    },
+    "expected": {
+      "equivalent": true,
+      "value": true
+    },
+    "error": false
   }
 ]

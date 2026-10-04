@@ -732,3 +732,49 @@ Expected result fields:
 ```
 
 `sum` takes an array of numbers; any other element type is an input error.
+
+## serialize
+
+```json
+{
+  "operation": "serialize",
+  "expression": "  1+2*3  "
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "canonical": "1 + 2 * 3",
+  "nodes": 5,
+  "depth": 3
+}
+```
+
+`serialize` compiles an expression and returns its canonical rendering (minimal parentheses, single spaces), structural metrics and a `tree` description listing every node. Array and object literals are not part of the language and render as JSON.
+
+## roundtrip
+
+```json
+{
+  "operation": "roundtrip",
+  "expression": "(price - discount) * quantity >= 100",
+  "facts": {
+    "price": 50,
+    "discount": 10,
+    "quantity": 3
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "equivalent": true,
+  "value": true
+}
+```
+
+`roundtrip` re-compiles the canonical rendering and evaluates both trees over the supplied facts, asserting identical results. It accepts an optional `budget`.
