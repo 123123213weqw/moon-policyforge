@@ -694,3 +694,136 @@ test "concat requires string elements" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "serialize canonical form and metrics" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"  1+2*3  \"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"1 + 2 * 3\""))
+  assert_eq(test_at(result, ["nodes"]), parse_value("5"))
+  assert_eq(test_at(result, ["depth"]), parse_value("3"))
+}
+
+///|
+test "serialize preserves explicit grouping" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"(1 + 2) * 3\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"(1 + 2) * 3\""))
+}
+
+///|
+test "serialize drops redundant parentheses" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"(a) + (b * c)\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"a + b * c\""))
+}
+
+///|
+test "serialize logical precedence" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"a || b && c || !d\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["canonical"]),
+    parse_value("\"a || b && c || !d\""),
+  )
+  let grouped = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"(a || b) && c\"}",
+    ),
+  )
+  assert_eq(
+    test_at(grouped, ["canonical"]),
+    parse_value("\"(a || b) && c\""),
+  )
+}
+
+///|
+test "serialize string and null literals" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"name == \\\"a b\\\" && extra != null\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["canonical"]),
+    parse_value("\"name == \\\"a b\\\" && extra != null\""),
+  )
+}
+
+///|
+test "serialize calls and unary chain" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"len(name) >= 3 && lower(tag) == \\\"x\\\" && -n < 0\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["canonical"]),
+    parse_value("\"len(name) >= 3 && lower(tag) == \\\"x\\\" && -n < 0\""),
+  )
+}
+
+///|
+test "serialize tree description" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"serialize\",\"expression\":\"a + b * 2\"}",
+    ),
+  )
+  match test_at(result, ["tree"]) {
+    Array(lines) => assert_eq(lines.length(), 5)
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "roundtrip equivalence over facts" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"roundtrip\",\"expression\":\"(price - discount) * quantity >= 100 && tier == \\\"gold\\\"\",\"facts\":{\"price\":50,\"discount\":10,\"quantity\":3,\"tier\":\"gold\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["equivalent"]), parse_value("true"))
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "roundtrip evaluates same as original" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"roundtrip\",\"expression\":\"sum(items) / count > avg_floor\",\"facts\":{\"items\":[2,4,6],\"count\":3,\"avg_floor\":3.9}}",
+    ),
+  )
+  assert_eq(test_at(result, ["equivalent"]), parse_value("true"))
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "roundtrip rejects bad budget" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"roundtrip\",\"expression\":\"1\",\"facts\":{},\"budget\":-3}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
