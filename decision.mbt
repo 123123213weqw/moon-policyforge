@@ -111,6 +111,12 @@ pub fn run(request : Value) -> Value raise {
   if operation == "check" {
     return check_request(request)
   }
+  if operation == "serialize" {
+    return serialize_request(request)
+  }
+  if operation == "roundtrip" {
+    return roundtrip_request(request)
+  }
   if operation == "evaluate" {
     let budget = optional_num(get(request, "budget"), 10000.0).to_int()
     if budget <= 0 || budget > 1000000 {
