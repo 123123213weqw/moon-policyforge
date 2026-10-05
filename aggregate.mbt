@@ -107,6 +107,64 @@ fn GroupAcc::metric_values(
 }
 
 ///|
+fn type_rank(value : Value) -> Int {
+  match value {
+    Null => 0
+    Bool(_) => 1
+    Number(_) => 2
+    String(_) => 3
+    Array(_) => 4
+    Object(_) => 5
+  }
+}
+
+///|
+/// Character-wise lexicographic order. The core string compare is not
+/// byte-lexicographic on this toolchain, so group ordering uses this
+/// explicit comparator to stay deterministic and conventional.
+fn stable_string_compare(a : String, b : String) -> Int {
+  let ac = a.to_array()
+  let bc = b.to_array()
+  let shared = if ac.length() < bc.length() {
+    ac.length()
+  } else {
+    bc.length()
+  }
+  for i in 0..<shared {
+    if ac[i] < bc[i] {
+      return -1
+    }
+    if ac[i] > bc[i] {
+      return 1
+    }
+  }
+  ac.length() - bc.length()
+}
+
+///|
+/// Total order over semantic values: null, then false, true, numbers in
+/// numeric order, strings in character order, then arrays and objects by
+/// their canonical JSON form.
+fn stable_value_compare(a : Value, b : Value) -> Int {
+  let ra = type_rank(a)
+  let rb = type_rank(b)
+  if ra != rb {
+    return ra - rb
+  }
+  match (a, b) {
+    (Bool(x), Bool(y)) =>
+      match (x, y) {
+        (false, true) => -1
+        (true, false) => 1
+        (_, _) => 0
+      }
+    (Number(x), Number(y)) => x.compare(y)
+    (String(x), String(y)) => stable_string_compare(x, y)
+    (_, _) => stable_string_compare(canonical(a), canonical(b))
+  }
+}
+
+///|
 fn aggregate_request(request : Value) -> Value raise {
   let key_expr = compile(str(get(request, "key")))
   let specs = parse_metrics(get(request, "metrics"))
@@ -167,9 +225,13 @@ fn aggregate_request(request : Value) -> Value raise {
     }
   }
   order.sort()
-  let report : Array[Value] = []
+  let accs : Array[GroupAcc] = []
   for canonical_key in order {
-    let group = groups[canonical_key]
+    accs.push(groups[canonical_key])
+  }
+  accs.sort_by(fn(a, b) { stable_value_compare(a.key_value, b.key_value) })
+  let report : Array[Value] = []
+  for group in accs {
     let flat = group.metric_values(specs)
     let metric_map : Map[String, Value] = Map([])
     let mut i = 0

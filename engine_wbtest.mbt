@@ -827,3 +827,163 @@ test "roundtrip rejects bad budget" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "aggregate sum avg min max by tier" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"aggregate\",\"facts\":[{\"tier\":\"g\",\"amount\":10},{\"tier\":\"s\",\"amount\":1},{\"tier\":\"g\",\"amount\":20},{\"tier\":\"s\",\"amount\":3}],\"key\":\"tier\",\"metrics\":[{\"name\":\"n\",\"op\":\"count\"},{\"name\":\"total\",\"op\":\"sum\",\"expression\":\"amount\"},{\"name\":\"avg\",\"op\":\"avg\",\"expression\":\"amount\"},{\"name\":\"lo\",\"op\":\"min\",\"expression\":\"amount\"},{\"name\":\"hi\",\"op\":\"max\",\"expression\":\"amount\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["group_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["groups", "0", "key"]),
+    parse_value("\"g\""),
+  )
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "total"]),
+    parse_value("30"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "avg"]),
+    parse_value("15"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "hi"]),
+    parse_value("20"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "1", "metrics", "lo"]),
+    parse_value("1"),
+  )
+  assert_eq(test_at(result, ["records"]), parse_value("4"))
+}
+
+///|
+test "aggregate numeric keys sorted canonically" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"aggregate\",\"facts\":[{\"band\":20},{\"band\":3},{\"band\":20}],\"key\":\"band\",\"metrics\":[{\"name\":\"n\",\"op\":\"count\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["groups", "0", "key"]),
+    parse_value("3"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "n"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "1", "metrics", "n"]),
+    parse_value("2"),
+  )
+}
+
+///|
+test "aggregate computed key expression" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"aggregate\",\"facts\":[{\"amount\":50},{\"amount\":500},{\"amount\":900}],\"key\":\"amount >= 500\",\"metrics\":[{\"name\":\"n\",\"op\":\"count\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["group_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "n"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["groups", "1", "metrics", "n"]),
+    parse_value("2"),
+  )
+}
+
+///|
+test "aggregate tolerates per-record errors" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"aggregate\",\"facts\":[{\"amount\":5},{}, {\"amount\":7}],\"key\":\"exists(amount)\",\"metrics\":[{\"name\":\"total\",\"op\":\"sum\",\"expression\":\"amount\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["record_errors"]), parse_value("1"))
+  assert_eq(test_at(result, ["group_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["groups", "0", "key"]), parse_value("false"))
+  assert_eq(
+    test_at(result, ["groups", "0", "metrics", "total"]),
+    parse_value("null"),
+  )
+  assert_eq(test_at(result, ["groups", "1", "key"]), parse_value("true"))
+  assert_eq(
+    test_at(result, ["groups", "1", "metrics", "total"]),
+    parse_value("12"),
+  )
+}
+
+///|
+test "aggregate duplicate metric rejected" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"aggregate\",\"facts\":[],\"key\":\"1\",\"metrics\":[{\"name\":\"a\",\"op\":\"count\"},{\"name\":\"a\",\"op\":\"count\"}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "aggregate unknown op rejected" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"aggregate\",\"facts\":[],\"key\":\"1\",\"metrics\":[{\"name\":\"a\",\"op\":\"median\",\"expression\":\"1\"}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "aggregate count with expression rejected" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"aggregate\",\"facts\":[],\"key\":\"1\",\"metrics\":[{\"name\":\"a\",\"op\":\"count\",\"expression\":\"1\"}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "aggregate budget validated" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"aggregate\",\"facts\":[],\"key\":\"1\",\"metrics\":[],\"budget\":99999999}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
