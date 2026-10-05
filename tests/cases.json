@@ -827,5 +827,51 @@
       "groups/1/metrics/total": 12
     },
     "error": false
+  },
+  {
+    "name": "infer nested schema",
+    "request": {
+      "operation": "infer",
+      "facts": [
+        {
+          "user": {
+            "age": 30,
+            "name": "bob"
+          },
+          "active": true,
+          "tags": [
+            "a"
+          ],
+          "score": 1.5
+        }
+      ]
+    },
+    "expected": {
+      "schema/user.age": "number",
+      "schema/user.name": "string",
+      "schema/active": "boolean",
+      "schema/tags": "array",
+      "scanned": 1
+    },
+    "error": false
+  },
+  {
+    "name": "infer mixed types",
+    "request": {
+      "operation": "infer",
+      "facts": [
+        {
+          "value": 1
+        },
+        {
+          "value": "x"
+        }
+      ]
+    },
+    "expected": {
+      "mixed/0/path": "value",
+      "scanned": 2
+    },
+    "error": false
   }
 ]

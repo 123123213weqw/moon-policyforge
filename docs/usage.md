@@ -808,3 +808,27 @@ Expected result fields:
 ```
 
 `aggregate` groups facts by a key expression and computes count/sum/avg/min/max metrics per group. Groups sort in semantic order: null, false, true, numbers ascending, strings character-wise, then arrays and objects by canonical form. Records whose key or metric expressions fail are skipped and counted in `record_errors`; group-level failures appear in `metric_errors`. Duplicate metric names, unknown ops, a `count` with an expression, and out-of-range budgets are request errors.
+
+## infer
+
+```json
+{
+  "operation": "infer",
+  "facts": [
+    { "user": { "age": 30, "name": "bob" }, "active": true, "tags": ["a"] }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "schema/user.age": "number",
+  "schema/user.name": "string",
+  "schema/active": "boolean",
+  "schema/tags": "array"
+}
+```
+
+`infer` derives a dotted-path schema from fact samples. Nested objects recurse; arrays are typed `array` without element inspection; paths seen with more than one type are excluded from `schema` and reported under `mixed` with their type lists. The output is directly usable as the `schema` argument of `check`.
