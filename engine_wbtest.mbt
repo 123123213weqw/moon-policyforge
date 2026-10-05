@@ -987,3 +987,135 @@ test "aggregate budget validated" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "infer nested schema types" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"user\":{\"age\":30,\"name\":\"bob\"},\"active\":true,\"tags\":[\"a\"],\"score\":1.5}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["schema", "user.age"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(
+    test_at(result, ["schema", "user.name"]),
+    parse_value("\"string\""),
+  )
+  assert_eq(
+    test_at(result, ["schema", "active"]),
+    parse_value("\"boolean\""),
+  )
+  assert_eq(
+    test_at(result, ["schema", "tags"]),
+    parse_value("\"array\""),
+  )
+  assert_eq(test_at(result, ["mixed"]), parse_value("[]"))
+  assert_eq(test_at(result, ["scanned"]), parse_value("1"))
+}
+
+///|
+test "infer reports mixed types separately" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"value\":1},{\"value\":\"x\"},{\"value\":true}]}",
+    ),
+  )
+  match test_at(result, ["schema"]) {
+    Object(fields) => assert_true(!fields.contains("value"))
+    _ => assert_true(false)
+  }
+  match test_at(result, ["mixed"]) {
+    Array(items) => {
+      assert_eq(items.length(), 1)
+      match items[0] {
+        Object(fields) =>
+          match fields.get("types") {
+            Some(Array(types)) => assert_eq(types.length(), 3)
+            _ => assert_true(false)
+          }
+        _ => assert_true(false)
+      }
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "infer paths sorted deterministically" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"z\":1,\"a\":{\"y\":2,\"b\":3}}]}",
+    ),
+  )
+  match test_at(result, ["schema"]) {
+    Object(fields) => {
+      let keys : Array[String] = []
+      for key, _ in fields {
+        keys.push(key)
+      }
+      assert_eq(keys.length(), 4)
+      assert_eq(keys[0], "a")
+      assert_eq(keys[1], "a.b")
+      assert_eq(keys[2], "a.y")
+      assert_eq(keys[3], "z")
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "infer null and nested arrays" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"extra\":null,\"matrix\":[[1],[2]]}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["schema", "extra"]),
+    parse_value("\"null\""),
+  )
+  assert_eq(
+    test_at(result, ["schema", "matrix"]),
+    parse_value("\"array\""),
+  )
+}
+
+///|
+test "infer union of paths across records" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"a\":1},{\"b\":2},{\"a\":3,\"b\":4}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["schema", "a"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(
+    test_at(result, ["schema", "b"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(test_at(result, ["scanned"]), parse_value("3"))
+}
+
+///|
+test "inferred schema feeds check" {
+  let inferred = run(
+    parse_value(
+      "{\"operation\":\"infer\",\"facts\":[{\"amount\":50,\"tier\":\"gold\"}]}",
+    ),
+  )
+  let schema = test_at(inferred, ["schema"])
+  let result = run(
+    record([
+      ("operation", String("check")),
+      ("expression", String("amount > 10 && tier == \"gold\"")),
+      ("schema", schema),
+    ]),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("true"))
+  assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
+}
