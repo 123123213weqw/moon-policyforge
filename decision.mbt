@@ -123,6 +123,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "infer" {
     return infer_request(request)
   }
+  if operation == "analyze" {
+    return analyze_rules(request)
+  }
   if operation == "evaluate" {
     let budget = optional_num(get(request, "budget"), 10000.0).to_int()
     if budget <= 0 || budget > 1000000 {
