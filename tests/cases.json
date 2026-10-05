@@ -873,5 +873,58 @@
       "scanned": 2
     },
     "error": false
+  },
+  {
+    "name": "analyze dependencies",
+    "request": {
+      "operation": "analyze",
+      "rules": [
+        {
+          "id": "r",
+          "priority": 5,
+          "when": "user.age >= 18 && len(tags) > 0",
+          "compute": "total * 2"
+        }
+      ]
+    },
+    "expected": {
+      "rules/0/dependencies/0": "tags",
+      "rules/0/dependencies/1": "total",
+      "rules/0/dependencies/2": "user.age",
+      "rules/0/nodes": 8,
+      "finding_count": 0
+    },
+    "error": false
+  },
+  {
+    "name": "analyze tautology and duplicates",
+    "request": {
+      "operation": "analyze",
+      "rules": [
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "x"
+        },
+        {
+          "id": "a",
+          "priority": 1,
+          "when": "amount > 10",
+          "output": 1
+        },
+        {
+          "id": "b",
+          "priority": 9,
+          "when": "amount > 10",
+          "output": 2
+        }
+      ]
+    },
+    "expected": {
+      "finding_count": 2,
+      "findings/0/kind": "tautology",
+      "findings/1/kind": "duplicate_condition"
+    },
+    "error": false
   }
 ]

@@ -832,3 +832,28 @@ Expected result fields:
 ```
 
 `infer` derives a dotted-path schema from fact samples. Nested objects recurse; arrays are typed `array` without element inspection; paths seen with more than one type are excluded from `schema` and reported under `mixed` with their type lists. The output is directly usable as the `schema` argument of `check`.
+
+## analyze
+
+```json
+{
+  "operation": "analyze",
+  "rules": [
+    { "id": "fallback", "when": "true", "output": "x" },
+    { "id": "a", "priority": 1, "when": "amount > 10", "output": 1 },
+    { "id": "b", "priority": 9, "when": "amount > 10", "output": 2 }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "finding_count": 2,
+  "findings/0/kind": "tautology",
+  "findings/1/kind": "duplicate_condition"
+}
+```
+
+`analyze` compiles every rule without facts and reports per-rule fact-path dependencies (condition plus compute, character-wise sorted), canonical condition forms, node/depth metrics, and findings: `tautology` for constant-true conditions, `duplicate_condition` with shadow direction (`shadows X` / `shadowed by X`), and `priority_tie` for equal priorities on identical conditions where rule ID order decides. Missing rule IDs and non-string compute are request errors.
