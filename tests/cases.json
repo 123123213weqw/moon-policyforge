@@ -1,0 +1,161 @@
+[
+  {
+    "name": "arithmetic precedence",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1 + 2 * 3 == 7 && true",
+      "facts": {}
+    },
+    "expected": {
+      "value": true
+    },
+    "error": false
+  },
+  {
+    "name": "short circuit",
+    "request": {
+      "operation": "evaluate",
+      "expression": "false && (1 / 0 > 1)",
+      "facts": {}
+    },
+    "expected": {
+      "value": false
+    },
+    "error": false
+  },
+  {
+    "name": "missing exists",
+    "request": {
+      "operation": "evaluate",
+      "expression": "exists(user.age)",
+      "facts": {}
+    },
+    "expected": {
+      "value": false
+    },
+    "error": false
+  },
+  {
+    "name": "priority first",
+    "request": {
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {
+        "age": 20
+      }
+    },
+    "expected": {
+      "results/0/result/decision": "adult"
+    },
+    "error": false
+  },
+  {
+    "name": "unique conflict",
+    "request": {
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {
+        "age": 20
+      },
+      "mode": "unique"
+    },
+    "expected": {
+      "results/0/result/conflict": true,
+      "results/0/result/decision": null
+    },
+    "error": false
+  },
+  {
+    "name": "all matches",
+    "request": {
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": {
+        "age": 20
+      },
+      "mode": "all"
+    },
+    "expected": {
+      "results/0/result/decision": [
+        "adult",
+        "other"
+      ]
+    },
+    "error": false
+  },
+  {
+    "name": "division zero",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1 / 0",
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "strict boolean",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1 && true",
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "duplicate rules",
+    "request": {
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        }
+      ],
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
+  }
+]
