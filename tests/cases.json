@@ -729,5 +729,103 @@
       "value": true
     },
     "error": false
+  },
+  {
+    "name": "aggregate by tier",
+    "request": {
+      "operation": "aggregate",
+      "facts": [
+        {
+          "tier": "g",
+          "amount": 10
+        },
+        {
+          "tier": "s",
+          "amount": 1
+        },
+        {
+          "tier": "g",
+          "amount": 20
+        },
+        {
+          "tier": "s",
+          "amount": 3
+        }
+      ],
+      "key": "tier",
+      "metrics": [
+        {
+          "name": "n",
+          "op": "count"
+        },
+        {
+          "name": "total",
+          "op": "sum",
+          "expression": "amount"
+        },
+        {
+          "name": "avg",
+          "op": "avg",
+          "expression": "amount"
+        }
+      ]
+    },
+    "expected": {
+      "group_count": 2,
+      "groups/0/key": "g",
+      "groups/0/metrics/total": 30,
+      "groups/0/metrics/avg": 15,
+      "groups/1/metrics/total": 4
+    },
+    "error": false
+  },
+  {
+    "name": "aggregate duplicate metric",
+    "request": {
+      "operation": "aggregate",
+      "facts": [],
+      "key": "1",
+      "metrics": [
+        {
+          "name": "a",
+          "op": "count"
+        },
+        {
+          "name": "a",
+          "op": "count"
+        }
+      ]
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "aggregate per-record errors",
+    "request": {
+      "operation": "aggregate",
+      "facts": [
+        {
+          "amount": 5
+        },
+        {},
+        {
+          "amount": 7
+        }
+      ],
+      "key": "exists(amount)",
+      "metrics": [
+        {
+          "name": "total",
+          "op": "sum",
+          "expression": "amount"
+        }
+      ]
+    },
+    "expected": {
+      "record_errors": 1,
+      "group_count": 2,
+      "groups/1/metrics/total": 12
+    },
+    "error": false
   }
 ]

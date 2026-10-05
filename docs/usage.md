@@ -778,3 +778,33 @@ Expected result fields:
 ```
 
 `roundtrip` re-compiles the canonical rendering and evaluates both trees over the supplied facts, asserting identical results. It accepts an optional `budget`.
+
+## aggregate
+
+```json
+{
+  "operation": "aggregate",
+  "facts": [
+    { "tier": "g", "amount": 10 },
+    { "tier": "s", "amount": 1 },
+    { "tier": "g", "amount": 20 }
+  ],
+  "key": "tier",
+  "metrics": [
+    { "name": "n", "op": "count" },
+    { "name": "total", "op": "sum", "expression": "amount" },
+    { "name": "avg", "op": "avg", "expression": "amount" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "group_count": 2,
+  "groups/0/metrics/total": 30
+}
+```
+
+`aggregate` groups facts by a key expression and computes count/sum/avg/min/max metrics per group. Groups sort in semantic order: null, false, true, numbers ascending, strings character-wise, then arrays and objects by canonical form. Records whose key or metric expressions fail are skipped and counted in `record_errors`; group-level failures appear in `metric_errors`. Duplicate metric names, unknown ops, a `count` with an expression, and out-of-range budgets are request errors.
