@@ -1119,3 +1119,133 @@ test "inferred schema feeds check" {
   assert_eq(test_at(result, ["ok"]), parse_value("true"))
   assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
 }
+
+
+///|
+test "analyze extracts dependencies and metrics" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"r\",\"priority\":5,\"when\":\"user.age >= 18 && len(tags) > 0\",\"compute\":\"total * 2\"}]}",
+    ),
+  )
+  match test_at(result, ["rules", "0", "dependencies"]) {
+    Array(items) => {
+      assert_eq(items.length(), 3)
+      assert_eq(items[0], parse_value("\"tags\""))
+      assert_eq(items[2], parse_value("\"user.age\""))
+    }
+    _ => assert_true(false)
+  }
+  assert_eq(
+    test_at(result, ["rules", "0", "canonical"]),
+    parse_value("\"user.age >= 18 && len(tags) > 0\""),
+  )
+  assert_eq(test_at(result, ["rules", "0", "depth"]), parse_value("4"))
+  assert_eq(test_at(result, ["finding_count"]), parse_value("0"))
+}
+
+///|
+test "analyze flags tautology" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"x\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "flags", "0"]),
+    parse_value("\"tautology\""),
+  )
+  assert_eq(
+    test_at(result, ["findings", "0", "kind"]),
+    parse_value("\"tautology\""),
+  )
+  assert_eq(test_at(result, ["finding_count"]), parse_value("1"))
+}
+
+///|
+test "analyze detects shadow direction" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"base\",\"priority\":1,\"when\":\"amount > 10\",\"output\":1},{\"id\":\"copy\",\"priority\":9,\"when\":\"amount > 10\",\"output\":2}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["finding_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["findings", "0", "kind"]),
+    parse_value("\"duplicate_condition\""),
+  )
+  match test_at(result, ["findings", "0", "detail"]) {
+    String(detail) => assert_eq(detail, "shadows base")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "analyze flags equal-priority tie" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"alpha\",\"priority\":2,\"when\":\"x > 0\",\"output\":1},{\"id\":\"beta\",\"priority\":2,\"when\":\"x > 0\",\"output\":2}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["finding_count"]), parse_value("2"))
+  match test_at(result, ["findings", "1", "kind"]) {
+    String(kind) => assert_eq(kind, "priority_tie")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "analyze reports canonical normalization differences" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"a\",\"when\":\"x  >  0\",\"output\":1},{\"id\":\"b\",\"when\":\"x > 0\",\"output\":2}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "canonical"]),
+    parse_value("\"x > 0\""),
+  )
+  assert_eq(test_at(result, ["finding_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["findings", "0", "kind"]),
+    parse_value("\"duplicate_condition\""),
+  )
+  assert_eq(
+    test_at(result, ["findings", "1", "kind"]),
+    parse_value("\"priority_tie\""),
+  )
+}
+
+///|
+test "analyze rejects missing rule id" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"analyze\",\"rules\":[{\"when\":\"true\",\"output\":1}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "analyze rejects non-string compute" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"analyze\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"compute\":5}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
