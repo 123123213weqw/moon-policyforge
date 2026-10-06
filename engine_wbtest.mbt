@@ -1249,3 +1249,116 @@ test "analyze rejects non-string compute" {
   }
   assert_true(failed)
 }
+
+
+///|
+fn explain_sample() -> Value raise {
+  run(
+    parse_value(
+      "{\"operation\":\"explain\",\"rules\":[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"},{\"id\":\"minor\",\"when\":\"age < 18\",\"output\":\"minor\"}],\"facts\":{\"age\":20}}",
+    ),
+  )
+}
+
+///|
+test "explain renders pass fail lines" {
+  let result = explain_sample()
+  let text = match test_at(result, ["text"]) {
+    String(value) => value
+    _ => ""
+  }
+  assert_true(text.contains("mode: first"))
+  assert_true(text.contains("decision: \"adult\""))
+  assert_true(text.contains("[PASS] adult"))
+  assert_true(text.contains("[FAIL] minor"))
+  assert_true(text.contains("matched outputs:"))
+  assert_true(text.contains("adult (priority 2) -> \"adult\""))
+  assert_true(text.contains("steps: "))
+  assert_true(text.contains("conflict: false"))
+}
+
+///|
+test "explain includes trace values" {
+  let result = explain_sample()
+  let text = match test_at(result, ["text"]) {
+    String(value) => value
+    _ => ""
+  }
+  assert_true(text.contains("trace: "))
+  assert_true(text.contains("trace: 20 | 18 | true"))
+}
+
+///|
+test "explain line count matches text" {
+  let result = explain_sample()
+  let text = match test_at(result, ["text"]) {
+    String(value) => value
+    _ => ""
+  }
+  let count = test_at(result, ["line_count"])
+  let expected = text.split("\n").length().to_double()
+  assert_eq(count, Number(expected))
+}
+
+///|
+test "explain unique conflict report" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"explain\",\"mode\":\"unique\",\"rules\":[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}],\"facts\":{\"age\":20}}",
+    ),
+  )
+  let text = match test_at(result, ["text"]) {
+    String(value) => value
+    _ => ""
+  }
+  assert_true(text.contains("conflict: true"))
+  assert_true(text.contains("conflicting rules: adult, fallback"))
+  assert_true(text.contains("decision: null"))
+}
+
+///|
+test "explain rejects multiple fact records" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"explain\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}],\"facts\":[{},{ }]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "explain validates mode and budget" {
+  let failed_mode = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"explain\",\"mode\":\"wat\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}],\"facts\":{}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed_mode)
+  let failed_budget = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"explain\",\"budget\":0,\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}],\"facts\":{}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed_budget)
+}

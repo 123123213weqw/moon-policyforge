@@ -108,7 +108,7 @@ fn explain_request(request : Value) -> Value raise {
   let rules = load_rules(get(request, "rules"))
   let facts = match get(request, "facts") {
     Array(items) =>
-      if items.is_empty() {
+      if items.length() != 1 {
         raise InputError("explain needs exactly one fact record")
       } else {
         items[0]
