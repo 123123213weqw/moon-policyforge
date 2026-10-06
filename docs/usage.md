@@ -880,3 +880,13 @@ Expected result fields:
 ```
 
 `explain` renders one record's decision as deterministic multi-line text: a mode/decision/conflict header, a `[PASS]` or `[FAIL]` line per evaluated rule with truncated trace values, matched outputs with priorities, and step counts. The structured `result` is included alongside. Fact arrays must contain exactly one record; mode and budget are validated as in `decide`.
+
+## JSONL streaming
+
+When the input path ends with `.jsonl`, the CLI processes newline-delimited requests: each non-empty line is one request, each line prints one compact JSON result, request failures become per-line `{"error": ...}` objects without stopping the stream, and the process exits nonzero if any line failed. Blank lines are skipped. Streaming is selected only by the file path suffix; `-` (stdin) always stays in single-request mode.
+
+```sh
+node _build/js/debug/build/cmd/main/main.js requests.jsonl
+```
+
+Successful lines print compact results, failing lines print error objects, and the exit code is 1 when anything failed. Run `node scripts/jsonl_check.mjs` for the executable end-to-end cases.
