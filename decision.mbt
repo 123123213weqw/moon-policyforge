@@ -14,7 +14,7 @@ fn load_rules(source : Value) -> Array[Rule] raise {
   for item in arr(source) {
     let id = str(get(item, "id"))
     if ids.contains(id) {
-      raise InputError("duplicate rule ID: " + id)
+      raise input_error("E4001", "duplicate rule ID: " + id)
     }
     ids[id] = true
     rules.push({
@@ -132,7 +132,7 @@ pub fn run(request : Value) -> Value raise {
   if operation == "evaluate" {
     let budget = optional_num(get(request, "budget"), 10000.0).to_int()
     if budget <= 0 || budget > 1000000 {
-      raise InputError("budget out of range")
+      raise input_error("E3007", "budget out of range")
     }
     return record([
       (
@@ -178,16 +178,16 @@ pub fn run(request : Value) -> Value raise {
     ])
   }
   if operation != "decide" {
-    raise InputError("unknown operation")
+    raise input_error("E3005", "unknown operation")
   }
   let rules = load_rules(get(request, "rules"))
   let mode = optional_str(get(request, "mode"), "first")
   if !["first", "all", "unique"].contains(mode) {
-    raise InputError("unknown decision mode")
+    raise input_error("E3006", "unknown decision mode")
   }
   let budget = optional_num(get(request, "budget"), 10000.0).to_int()
   if budget <= 0 || budget > 1000000 {
-    raise InputError("budget out of range")
+    raise input_error("E3007", "budget out of range")
   }
   let results : Array[Value] = []
   let facts = match get(request, "facts") {

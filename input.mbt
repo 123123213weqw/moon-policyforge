@@ -15,7 +15,7 @@ fn get(value : Value, key : String) -> Value {
 fn str(value : Value) -> String raise InputError {
   match value {
     String(s) => s
-    _ => raise InputError("expected string")
+    _ => raise input_error("E3001", "expected string")
   }
 }
 
@@ -23,7 +23,7 @@ fn str(value : Value) -> String raise InputError {
 fn arr(value : Value) -> Array[Value] raise InputError {
   match value {
     Array(items) => items
-    _ => raise InputError("expected array")
+    _ => raise input_error("E3002", "expected array")
   }
 }
 
@@ -31,7 +31,7 @@ fn arr(value : Value) -> Array[Value] raise InputError {
 fn obj(value : Value) -> Map[String, Value] raise InputError {
   match value {
     Object(fields) => fields
-    _ => raise InputError("expected object")
+    _ => raise input_error("E3003", "expected object")
   }
 }
 
@@ -39,7 +39,7 @@ fn obj(value : Value) -> Map[String, Value] raise InputError {
 fn num(value : Value) -> Double raise InputError {
   match value {
     Number(n) if !n.is_nan() && !n.is_inf() => n
-    _ => raise InputError("expected finite number")
+    _ => raise input_error("E3004", "expected finite number")
   }
 }
 
@@ -105,4 +105,12 @@ fn truth(value : Value) -> Bool {
     Array(a) => !a.is_empty()
     Object(o) => !o.is_empty()
   }
+}
+
+///|
+/// Coded input errors: a stable E-code prefix plus the human message.
+/// Codes make CLI output greppable and let hosts branch on failure
+/// classes without parsing prose.
+fn input_error(code : String, message : String) -> InputError {
+  InputError(code + " " + message)
 }

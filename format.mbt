@@ -140,7 +140,7 @@ fn roundtrip_request(request : Value) -> Value raise {
   let facts = get(request, "facts")
   let budget = optional_num(get(request, "budget"), 10000.0).to_int()
   if budget <= 0 || budget > 1000000 {
-    raise InputError("budget out of range")
+    raise input_error("E3007", "budget out of range")
   }
   let original = compile(source)
   let rendered = original.render()

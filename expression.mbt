@@ -25,7 +25,7 @@ fn identifier_char(c : Char) -> Bool {
 ///|
 fn tokenize(source : String) -> Array[String] raise InputError {
   if source.length() > 65536 {
-    raise InputError("expression too long")
+    raise input_error("E1001", "expression too long")
   }
   let chars = source.to_array()
   let result : Array[String] = []
@@ -56,7 +56,7 @@ fn tokenize(source : String) -> Array[String] raise InputError {
         }
       }
       if !closed {
-        raise InputError("unterminated string")
+        raise input_error("E1002", "unterminated string")
       }
       result.push(value)
     } else if identifier_char(c) {
@@ -80,7 +80,7 @@ fn tokenize(source : String) -> Array[String] raise InputError {
           "(", ")", ",", "!", "-", "+", "*", "/", "==", "!=", ">", "<", ">=", "<=",
           "&&", "||",
         ].contains(token) {
-        raise InputError("unexpected token: " + token)
+        raise input_error("E1003", "unexpected token: " + token)
       }
       result.push(token)
     }
@@ -100,7 +100,7 @@ fn Parser::peek(self : Parser) -> String {
 ///|
 fn Parser::take(self : Parser) -> String raise InputError {
   if self.position >= self.tokens.length() {
-    raise InputError("unexpected end of expression")
+    raise input_error("E1004", "unexpected end of expression")
   }
   let token = self.tokens[self.position]
   self.position += 1
@@ -127,7 +127,7 @@ fn Parser::expression(
   depth : Int,
 ) -> Expression raise {
   if depth > 128 {
-    raise InputError("expression nesting limit")
+    raise input_error("E1007", "expression nesting limit")
   }
   let token = self.take()
   let mut left = if token == "!" || token == "-" {
@@ -135,7 +135,7 @@ fn Parser::expression(
   } else if token == "(" {
     let expr = self.expression(1, depth + 1)
     if self.take() != ")" {
-      raise InputError("expected closing parenthesis")
+      raise input_error("E1005", "expected closing parenthesis")
     }
     expr
   } else if token.has_prefix("\"") ||
@@ -146,7 +146,7 @@ fn Parser::expression(
     Literal(parse_value(token))
   } else {
     if token == "" || token == ")" || token == "," || precedence(token) != 0 {
-      raise InputError("expected value")
+      raise input_error("E1006", "expected value")
     }
     if self.peek() == "(" {
       ignore(self.take())
@@ -161,10 +161,10 @@ fn Parser::expression(
         }
       }
       if self.take() != ")" {
-        raise InputError("expected closing parenthesis")
+        raise input_error("E1005", "expected closing parenthesis")
       }
       if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil", "round", "min", "max", "sum", "concat"].contains(token) {
-        raise InputError("unknown function: " + token)
+        raise input_error("E1008", "unknown function: " + token)
       }
       Call(token, args)
     } else {
@@ -183,7 +183,7 @@ pub fn compile(source : String) -> Expression raise {
   let parser : Parser = { tokens: tokenize(source), position: 0, }
   let expr = parser.expression(1, 0)
   if parser.peek() != "" {
-    raise InputError("trailing expression token")
+    raise input_error("E1009", "trailing expression token")
   }
   expr
 }
@@ -214,7 +214,7 @@ struct Evaluation {
 fn boolean(value : Value) -> Bool raise InputError {
   match value {
     Bool(b) => b
-    _ => raise InputError("logical operand is not boolean")
+    _ => raise input_error("E2002", "logical operand is not boolean")
   }
 }
 
@@ -223,7 +223,7 @@ fn order(a : Value, b : Value) -> Int raise InputError {
   match (a, b) {
     (Number(x), Number(y)) => x.compare(y)
     (String(x), String(y)) => x.compare(y)
-    _ => raise InputError("incompatible comparison operands")
+    _ => raise input_error("E2003", "incompatible comparison operands")
   }
 }
 
@@ -235,18 +235,18 @@ fn evaluate(
 ) -> Value raise {
   state.fuel -= 1
   if state.fuel < 0 {
-    raise InputError("evaluation budget exceeded")
+    raise input_error("E2009", "evaluation budget exceeded")
   }
   let value = match expr {
     Literal(v) => v
     Variable(path) =>
       match lookup(facts, path) {
         Some(v) => v
-        None => raise InputError("missing fact: " + path)
+        None => raise input_error("E2001", "missing fact: " + path)
       }
     Unary("!", operand) => Bool(!boolean(evaluate(operand, facts, state)))
     Unary("-", operand) => Number(-num(evaluate(operand, facts, state)))
-    Unary(_, _) => raise InputError("unsupported unary operator")
+    Unary(_, _) => raise input_error("E2004", "unsupported unary operator")
     Binary(op, a, b) => {
       let left = evaluate(a, facts, state)
       if op == "&&" && !boolean(left) {
@@ -275,11 +275,11 @@ fn evaluate(
           "/" => {
             let denominator = num(right)
             if denominator == 0.0 {
-              raise InputError("division by zero")
+              raise input_error("E2008", "division by zero")
             }
             Number(num(left) / denominator)
           }
-          _ => raise InputError("unknown operator")
+          _ => raise input_error("E2005", "unknown operator")
         }
       }
     }
@@ -304,7 +304,7 @@ fn evaluate(
           let start = a.to_int()
           let end = b.to_int()
           if start < 0 || end > len || start > end {
-            raise InputError("substring out of bounds")
+            raise input_error("E2008", "substring out of bounds")
           }
           String(s.substring(start=start, end=end).to_string())
         }
@@ -328,12 +328,12 @@ fn evaluate(
           }
           String(acc)
         }
-        _ => raise InputError("invalid function argument(s): " + name)
+        _ => raise input_error("E2006", "invalid function argument(s): " + name)
       }
     }
   }
   if value is Number(n) && (n.is_inf() || n.is_nan()) {
-    raise InputError("nonfinite result")
+    raise input_error("E2007", "nonfinite result")
   }
   state.trace.push(value)
   value

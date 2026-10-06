@@ -32,23 +32,23 @@ fn parse_metrics(source : Value) -> Array[MetricSpec] raise {
   for item in arr(source) {
     let name = str(get(item, "name"))
     if names.contains(name) {
-      raise InputError("duplicate metric name: " + name)
+      raise input_error("E4002", "duplicate metric name: " + name)
     }
     names[name] = true
     let op = str(get(item, "op"))
     let expr : Expression? = if get(item, "expression") is Null {
       if op != "count" {
-        raise InputError("metric " + name + " needs an expression")
+        raise input_error("E4003", "metric " + name + " needs an expression")
       }
       None
     } else {
       if op == "count" {
-        raise InputError("count metric takes no expression")
+        raise input_error("E4004", "count metric takes no expression")
       }
       Some(compile(str(get(item, "expression"))))
     }
     if !["count", "sum", "avg", "min", "max"].contains(op) {
-      raise InputError("unknown metric op: " + op)
+      raise input_error("E4005", "unknown metric op: " + op)
     }
     specs.push({ name, op, expr })
   }
@@ -170,7 +170,7 @@ fn aggregate_request(request : Value) -> Value raise {
   let specs = parse_metrics(get(request, "metrics"))
   let budget = optional_num(get(request, "budget"), 10000.0).to_int()
   if budget <= 0 || budget > 1000000 {
-    raise InputError("budget out of range")
+    raise input_error("E3007", "budget out of range")
   }
   let groups : Map[String, GroupAcc] = Map([])
   let order : Array[String] = []

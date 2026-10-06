@@ -103,13 +103,13 @@ fn explain_lines(result : Value, mode : String) -> Array[String] raise {
 fn explain_request(request : Value) -> Value raise {
   let mode = optional_str(get(request, "mode"), "first")
   if !["first", "all", "unique"].contains(mode) {
-    raise InputError("unknown decision mode")
+    raise input_error("E3006", "unknown decision mode")
   }
   let rules = load_rules(get(request, "rules"))
   let facts = match get(request, "facts") {
     Array(items) =>
       if items.length() != 1 {
-        raise InputError("explain needs exactly one fact record")
+        raise input_error("E3010", "explain needs exactly one fact record")
       } else {
         items[0]
       }
@@ -117,7 +117,7 @@ fn explain_request(request : Value) -> Value raise {
   }
   let budget = optional_num(get(request, "budget"), 10000.0).to_int()
   if budget <= 0 || budget > 1000000 {
-    raise InputError("budget out of range")
+    raise input_error("E3007", "budget out of range")
   }
   let result = decide(rules, facts, mode, get(request, "default"), budget)
   let lines = explain_lines(result, mode)

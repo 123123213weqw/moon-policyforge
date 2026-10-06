@@ -44,7 +44,7 @@ fn analyze_rules(request : Value) -> Value raise {
   for item in rules {
     let id = match get(item, "id") {
       String(name) => name
-      _ => raise InputError("rule at index " + index.to_string() + " needs an ID")
+      _ => raise input_error("E4006", "rule at index " + index.to_string() + " needs an ID")
     }
     let condition = compile(str(get(item, "when")))
     let paths : Map[String, Bool] = Map([])
@@ -52,7 +52,7 @@ fn analyze_rules(request : Value) -> Value raise {
     match get(item, "compute") {
       Null => ()
       String(source) => collect_paths(compile(source), paths)
-      _ => raise InputError("compute must be a string")
+      _ => raise input_error("E4007", "compute must be a string")
     }
     let dependency_list = sorted_paths(paths)
     let dependencies = strings(dependency_list)
