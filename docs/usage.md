@@ -857,3 +857,26 @@ Expected result fields:
 ```
 
 `analyze` compiles every rule without facts and reports per-rule fact-path dependencies (condition plus compute, character-wise sorted), canonical condition forms, node/depth metrics, and findings: `tautology` for constant-true conditions, `duplicate_condition` with shadow direction (`shadows X` / `shadowed by X`), and `priority_tie` for equal priorities on identical conditions where rule ID order decides. Missing rule IDs and non-string compute are request errors.
+
+## explain
+
+```json
+{
+  "operation": "explain",
+  "rules": [
+    { "id": "adult", "priority": 2, "when": "age >= 18", "output": "adult" },
+    { "id": "minor", "when": "age < 18", "output": "minor" }
+  ],
+  "facts": { "age": 20 }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "line_count": 12
+}
+```
+
+`explain` renders one record's decision as deterministic multi-line text: a mode/decision/conflict header, a `[PASS]` or `[FAIL]` line per evaluated rule with truncated trace values, matched outputs with priorities, and step counts. The structured `result` is included alongside. Fact arrays must contain exactly one record; mode and budget are validated as in `decide`.

@@ -926,5 +926,50 @@
       "findings/1/kind": "duplicate_condition"
     },
     "error": false
+  },
+  {
+    "name": "explain report",
+    "request": {
+      "operation": "explain",
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "minor",
+          "when": "age < 18",
+          "output": "minor"
+        }
+      ],
+      "facts": {
+        "age": 20
+      }
+    },
+    "expected": {
+      "line_count": 14
+    },
+    "error": false
+  },
+  {
+    "name": "explain rejects multiple records",
+    "request": {
+      "operation": "explain",
+      "rules": [
+        {
+          "id": "r",
+          "when": "true",
+          "output": 1
+        }
+      ],
+      "facts": [
+        {},
+        {}
+      ]
+    },
+    "expected": {},
+    "error": true
   }
 ]
