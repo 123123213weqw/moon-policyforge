@@ -1643,3 +1643,103 @@ test "run program per-record errors" {
     _ => assert_true(false)
   }
 }
+
+
+///|
+test "coverage tallies hits and rates" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"coverage\",\"rules\":[{\"id\":\"adult\",\"when\":\"age >= 18\"},{\"id\":\"senior\",\"when\":\"age >= 65\"}],\"facts\":[{\"age\":70},{\"age\":30},{\"age\":10}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["records"]), parse_value("3"))
+  assert_eq(test_at(result, ["covered_records"]), parse_value("2"))
+  assert_eq(test_at(result, ["multi_hit_records"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["rules", "0", "hits"]),
+    parse_value("2"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "hits"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "hit_rate"]),
+    parse_value("33.333333333333336"),
+  )
+  assert_eq(test_at(result, ["never_hit"]), parse_value("0"))
+  assert_eq(test_at(result, ["always_hit"]), parse_value("0"))
+}
+
+///|
+test "coverage pattern distribution sorted" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"coverage\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"b\",\"when\":\"x > 2\"}],\"facts\":[{\"x\":3},{\"x\":2},{\"x\":0}]}",
+    ),
+  )
+  match test_at(result, ["patterns"]) {
+    Array(entries) => {
+      assert_eq(entries.length(), 3)
+      assert_eq(test_at(entries[0], ["matched"]), parse_value("\"a\""))
+      assert_eq(test_at(entries[0], ["records"]), parse_value("1"))
+      assert_eq(test_at(entries[1], ["matched"]), parse_value("\"a+b\""))
+      assert_eq(test_at(entries[2], ["matched"]), parse_value("\"none\""))
+      assert_eq(test_at(entries[2], ["share"]), parse_value("33.333333333333336"))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "coverage counts per-rule errors without aborting" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"coverage\",\"rules\":[{\"id\":\"needs\",\"when\":\"amount > 5\"},{\"id\":\"safe\",\"when\":\"exists(amount) && amount > 0\"}],\"facts\":[{\"amount\":10},{}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["error_records"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["rules", "0", "errors"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "evaluated"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "hits"]),
+    parse_value("1"),
+  )
+}
+
+///|
+test "coverage always hit detection" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"coverage\",\"rules\":[{\"id\":\"all\",\"when\":\"true\"}],\"facts\":[{},{},{}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["always_hit"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["rules", "0", "hit_rate"]),
+    parse_value("100"),
+  )
+}
+
+///|
+test "coverage validates budget" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"coverage\",\"rules\":[{\"id\":\"r\",\"when\":\"true\"}],\"facts\":[],\"budget\":99999999}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

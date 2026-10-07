@@ -32,7 +32,7 @@ fn load_rules(source : Value) -> Array[Rule] raise {
   rules.sort_by(fn(a, b) {
     let cmp = b.priority.compare(a.priority)
     if cmp == 0 {
-      a.id.compare(b.id)
+      stable_string_compare(a.id, b.id)
     } else {
       cmp
     }
