@@ -3,13 +3,13 @@
 Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API.
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
-- Package: `123123213weqw/moon_policyforge@0.2.0`
+- Package: `123123213weqw/moon_policyforge@0.3.0`
 - License: Apache-2.0
-- Release scope: **0.2.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
+- Release scope: **0.3.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
 
 ## Implemented
 
-An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets (shared by decide and evaluate); rule priority; first/all/unique decisions; conflict flags with conflicting rule IDs; per-record errors; condition traces; rule-set diff; an opt-in schema-based static checker for expressions and rule sets; three complete scenario fixtures (discount, admission, data quality) and a 100k-fact scale validation against an independent oracle.
+An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets (shared by decide and evaluate); rule priority; first/all/unique decisions; conflict flags with conflicting rule IDs; per-record errors; condition traces; rule-set diff with conflict attribution; an opt-in schema-based static checker; canonical expression serialization with structural metrics and round-trip verification; group-wise aggregation; schema inference; static rule-set analysis (dependencies, tautologies, shadowing, ties); single-record text decision reports; a coded error taxonomy (E1xxx-E4xxx); JSONL streaming through the CLI; three complete scenario fixtures; a 100k-fact scale validation, a 500-expression differential fuzz oracle and recorded throughput benchmarks.
 
 ## Build and run
 
@@ -27,7 +27,7 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 ## Library use
 
 ```sh
-moon add 123123213weqw/moon_policyforge@0.2.0
+moon add 123123213weqw/moon_policyforge@0.3.0
 ```
 
 In the consumer's `moon.pkg`:
@@ -69,12 +69,16 @@ moon build --target js
 node scripts/check.mjs
 python -B scripts/reference.py
 python -B scripts/scale_check.py
+python -B scripts/error_codes.py
+python -B scripts/fuzz_diff.py
+node scripts/jsonl_check.mjs
+node scripts/bench.mjs
 ```
 
-There are 24 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. See [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 57 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. See the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 
-A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are always checked at evaluation. A full static type inference is not included; the opt-in `check` operation reports what an optional caller-supplied schema proves, and unknown fact paths defer to runtime. All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches, with the conflicting IDs in `conflict_ids`. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
+A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are always checked at evaluation. A full static type inference is not included; the opt-in `check` operation reports what an optional caller-supplied schema proves, and unknown fact paths defer to runtime. Every input error carries a stable E-code prefix (see docs/errors.md). All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches, with the conflicting IDs in `conflict_ids`. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
 
 See [source and dependency attribution](THIRD_PARTY.md). This release does not establish competition eligibility or organizer acceptance.
