@@ -890,3 +890,28 @@ node _build/js/debug/build/cmd/main/main.js requests.jsonl
 ```
 
 Successful lines print compact results, failing lines print error objects, and the exit code is 1 when anything failed. Run `node scripts/jsonl_check.mjs` for the executable end-to-end cases.
+
+## optimize
+
+```json
+{
+  "operation": "optimize",
+  "expression": "1 + 2 * 3 == 7 && true"
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "canonical": "true",
+  "nodes": 1,
+  "changed": true
+}
+```
+
+`optimize` rewrites an expression with semantics-preserving rewrites: fully-literal subtrees fold through the standard evaluator (a subtree that would raise at runtime stays unfolded so error classes are preserved), literal `true`/`false` operands of `&&` and `||` are eliminated when the eliminated side is provably never evaluated, and double negations collapse. The result reports canonical forms, node and depth metrics before and after, and the savings percentage.
+
+## evaluate with optimize
+
+Adding `"optimize": true` to an `evaluate` request evaluates the reduced tree: identical values and error classes, fewer recorded steps. Requests without the flag keep full-fidelity step accounting.

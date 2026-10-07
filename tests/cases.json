@@ -971,5 +971,46 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "optimize literals",
+    "request": {
+      "operation": "optimize",
+      "expression": "1 + 2 * 3 == 7 && true"
+    },
+    "expected": {
+      "canonical": "true",
+      "nodes": 1,
+      "changed": true
+    },
+    "error": false
+  },
+  {
+    "name": "optimize preserves raising subtrees",
+    "request": {
+      "operation": "optimize",
+      "expression": "flag && 1 / 0 > 1"
+    },
+    "expected": {
+      "canonical": "flag && 1 / 0 > 1",
+      "changed": false
+    },
+    "error": false
+  },
+  {
+    "name": "evaluate with optimize flag",
+    "request": {
+      "operation": "evaluate",
+      "expression": "amount > 100 && tier == \"gold\" || false",
+      "facts": {
+        "amount": 120,
+        "tier": "gold"
+      },
+      "optimize": true
+    },
+    "expected": {
+      "value": true
+    },
+    "error": false
   }
 ]
