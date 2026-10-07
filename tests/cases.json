@@ -1050,5 +1050,68 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "coverage tallies",
+    "request": {
+      "operation": "coverage",
+      "rules": [
+        {
+          "id": "adult",
+          "when": "age >= 18"
+        },
+        {
+          "id": "senior",
+          "when": "age >= 65"
+        }
+      ],
+      "facts": [
+        {
+          "age": 70
+        },
+        {
+          "age": 30
+        },
+        {
+          "age": 10
+        }
+      ]
+    },
+    "expected": {
+      "records": 3,
+      "covered_records": 2,
+      "multi_hit_records": 1,
+      "rules/0/hits": 2,
+      "rules/1/hits": 1
+    },
+    "error": false
+  },
+  {
+    "name": "coverage errors tolerated",
+    "request": {
+      "operation": "coverage",
+      "rules": [
+        {
+          "id": "needs",
+          "when": "amount > 5"
+        },
+        {
+          "id": "safe",
+          "when": "exists(amount) && amount > 0"
+        }
+      ],
+      "facts": [
+        {
+          "amount": 10
+        },
+        {}
+      ]
+    },
+    "expected": {
+      "error_records": 1,
+      "rules/0/errors": 1,
+      "rules/1/hits": 1
+    },
+    "error": false
   }
 ]

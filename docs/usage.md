@@ -937,3 +937,32 @@ Expected result fields:
 ```
 
 `compile_rules` validates a rule set once and returns a canonical program: every condition and compute expression is rendered to canonical form (so `"age>=18"` becomes `"age >= 18"`), duplicate conditions are flagged, and non-finite priorities are rejected. `run_program` executes that program over fact batches with the same `mode`/`budget`/`default` semantics as `decide`; it re-verifies structural identity of every entry and rejects tampered or non-canonical programs, duplicate IDs, unknown modes and out-of-range budgets. This enables compile-once, run-many workflows through JSONL streaming.
+
+## coverage
+
+```json
+{
+  "operation": "coverage",
+  "rules": [
+    { "id": "adult", "when": "age >= 18" },
+    { "id": "senior", "when": "age >= 65" }
+  ],
+  "facts": [
+    { "age": 70 },
+    { "age": 30 },
+    { "age": 10 }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "covered_records": 2,
+  "multi_hit_records": 1,
+  "rules/0/hits": 2
+}
+```
+
+`coverage` evaluates every rule condition across the batch with independent fuel per record and reports per-rule hits, evaluated counts, errors and hit rates; batch-level covered, multi-hit and error record counts; never-hit and always-hit rule counts; and the full matched-rule pattern distribution sorted character-wise with shares. Per-record failures count toward the failing rule's error tally and shrink its evaluation base without aborting the batch.
