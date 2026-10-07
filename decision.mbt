@@ -111,6 +111,12 @@ pub fn run(request : Value) -> Value raise {
   if operation == "optimize" {
     return optimize_request(request)
   }
+  if operation == "compile_rules" {
+    return compile_rules_request(request)
+  }
+  if operation == "run_program" {
+    return run_program_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
