@@ -108,6 +108,9 @@ fn decide(
 ///|
 pub fn run(request : Value) -> Value raise {
   let operation = optional_str(get(request, "operation"), "decide")
+  if operation == "optimize" {
+    return optimize_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
@@ -137,11 +140,20 @@ pub fn run(request : Value) -> Value raise {
     return record([
       (
         "value",
-        evaluate_expression(
-          str(get(request, "expression")),
-          get(request, "facts"),
-          budget=budget,
-        ),
+        if truth(get(request, "optimize")) {
+          let state : Evaluation = { fuel: budget, trace: [], }
+          evaluate(
+            optimize_expr(compile(str(get(request, "expression")))),
+            get(request, "facts"),
+            state,
+          )
+        } else {
+          evaluate_expression(
+            str(get(request, "expression")),
+            get(request, "facts"),
+            budget=budget,
+          )
+        },
       ),
     ])
   }
