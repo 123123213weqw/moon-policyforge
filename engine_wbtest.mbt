@@ -1362,3 +1362,127 @@ test "explain validates mode and budget" {
   }
   assert_true(failed_budget)
 }
+
+
+///|
+test "optimize folds literal arithmetic" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"1 + 2 * 3 == 7 && true\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"true\""))
+  assert_eq(test_at(result, ["nodes"]), parse_value("1"))
+  assert_eq(test_at(result, ["changed"]), parse_value("true"))
+  assert_eq(test_at(result, ["original_nodes"]), parse_value("9"))
+}
+
+///|
+test "optimize keeps raising subtrees unfolded" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"flag && 1 / 0 > 1\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["canonical"]),
+    parse_value("\"flag && 1 / 0 > 1\""),
+  )
+  assert_eq(test_at(result, ["changed"]), parse_value("false"))
+}
+
+///|
+test "optimize drops literal true operands" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"true && flag || false\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"flag\""))
+}
+
+///|
+test "optimize collapses short circuit true" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"false && anything || true\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"true\""))
+  assert_eq(test_at(result, ["nodes"]), parse_value("1"))
+}
+
+///|
+test "optimize removes double negation" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"!!flag && !!active\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"flag && active\""))
+}
+
+///|
+test "optimize folds nested constants inside calls" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"len(items) > 1 + 1 && abs(-5) == 5\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["canonical"]),
+    parse_value("\"len(items) > 2\""),
+  )
+}
+
+///|
+test "optimized evaluate preserves value" {
+  let facts = "{\"amount\":120,\"tier\":\"gold\"}"
+  let plain = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"amount > 100 && tier == \\\"gold\\\" || false\",\"facts\":" +
+      facts +
+      "}",
+    ),
+  )
+  let optimized = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"amount > 100 && tier == \\\"gold\\\" || false\",\"facts\":" +
+      facts +
+      ",\"optimize\":true}",
+    ),
+  )
+  assert_eq(
+    test_at(plain, ["value"]),
+    test_at(optimized, ["value"]),
+  )
+  assert_eq(test_at(optimized, ["value"]), parse_value("true"))
+}
+
+///|
+test "optimized evaluate preserves errors" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"flag && 1 / 0 > 1\",\"facts\":{\"flag\":true},\"optimize\":true}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "optimize idempotent on already minimal trees" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"optimize\",\"expression\":\"amount > 100\"}",
+    ),
+  )
+  assert_eq(test_at(result, ["changed"]), parse_value("false"))
+  assert_eq(test_at(result, ["savings_percent"]), parse_value("0"))
+}
