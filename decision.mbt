@@ -117,6 +117,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "run_program" {
     return run_program_request(request)
   }
+  if operation == "coverage" {
+    return coverage_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
