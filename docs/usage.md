@@ -915,3 +915,25 @@ Expected result fields:
 ## evaluate with optimize
 
 Adding `"optimize": true` to an `evaluate` request evaluates the reduced tree: identical values and error classes, fewer recorded steps. Requests without the flag keep full-fidelity step accounting.
+
+## compile_rules / run_program
+
+```json
+{
+  "operation": "compile_rules",
+  "rules": [
+    { "id": "adult", "priority": 2, "when": "age>=18", "output": "adult" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "program/0/condition": "age >= 18",
+  "program/0/duplicate_condition": false
+}
+```
+
+`compile_rules` validates a rule set once and returns a canonical program: every condition and compute expression is rendered to canonical form (so `"age>=18"` becomes `"age >= 18"`), duplicate conditions are flagged, and non-finite priorities are rejected. `run_program` executes that program over fact batches with the same `mode`/`budget`/`default` semantics as `decide`; it re-verifies structural identity of every entry and rejects tampered or non-canonical programs, duplicate IDs, unknown modes and out-of-range budgets. This enables compile-once, run-many workflows through JSONL streaming.

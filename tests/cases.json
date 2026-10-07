@@ -1012,5 +1012,43 @@
       "value": true
     },
     "error": false
+  },
+  {
+    "name": "compile and run program",
+    "request": {
+      "operation": "compile_rules",
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age>=18",
+          "output": "adult"
+        }
+      ]
+    },
+    "expected": {
+      "program/0/condition": "age >= 18",
+      "program/0/duplicate_condition": false,
+      "duplicate_conditions": 0
+    },
+    "error": false
+  },
+  {
+    "name": "run program rejects non-canonical",
+    "request": {
+      "operation": "run_program",
+      "program": [
+        {
+          "id": "r",
+          "condition": "age  >=  18",
+          "output": 1
+        }
+      ],
+      "facts": {
+        "age": 20
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

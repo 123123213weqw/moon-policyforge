@@ -1486,3 +1486,160 @@ test "optimize idempotent on already minimal trees" {
   assert_eq(test_at(result, ["changed"]), parse_value("false"))
   assert_eq(test_at(result, ["savings_percent"]), parse_value("0"))
 }
+
+
+///|
+fn sample_program() -> Value raise {
+  let compiled = run(
+    parse_value(
+      "{\"operation\":\"compile_rules\",\"rules\":[{\"id\":\"adult\",\"priority\":2,\"when\":\"age>=18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}]}",
+    ),
+  )
+  test_at(compiled, ["program"])
+}
+
+///|
+test "compile rules canonicalizes conditions" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"compile_rules\",\"rules\":[{\"id\":\"adult\",\"when\":\"age>=18\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["program", "0", "condition"]),
+    parse_value("\"age >= 18\""),
+  )
+  assert_eq(
+    test_at(result, ["program", "0", "duplicate_condition"]),
+    parse_value("false"),
+  )
+  assert_eq(test_at(result, ["duplicate_conditions"]), parse_value("0"))
+}
+
+///|
+test "compile rules flags duplicate conditions" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"compile_rules\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"b\",\"when\":\"x>1\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["program", "1", "duplicate_condition"]),
+    parse_value("true"),
+  )
+  assert_eq(test_at(result, ["duplicate_conditions"]), parse_value("1"))
+}
+
+///|
+test "compile rules canonicalizes compute" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"compile_rules\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"compute\":\"total*0.1\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["program", "0", "compute"]),
+    parse_value("\"total * 0.1\""),
+  )
+}
+
+///|
+test "run program decides like rules" {
+  let program = sample_program()
+  let result = run(
+    record([
+      ("operation", String("run_program")),
+      ("program", program),
+      ("facts", parse_value("{\"age\":20}")),
+    ]),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "result", "decision"]),
+    parse_value("\"adult\""),
+  )
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+}
+
+///|
+test "run program rejects tampered condition" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"run_program\",\"program\":[{\"id\":\"r\",\"condition\":\"age  >=  18\",\"output\":1}],\"facts\":{}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "run program rejects duplicate ids" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"run_program\",\"program\":[{\"id\":\"r\",\"condition\":\"true\",\"output\":1},{\"id\":\"r\",\"condition\":\"false\",\"output\":2}],\"facts\":{}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "run program validates mode and budget" {
+  let failed_mode = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"run_program\",\"program\":[{\"id\":\"r\",\"condition\":\"true\",\"output\":1}],\"facts\":{},\"mode\":\"wat\"}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed_mode)
+  let failed_budget = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"run_program\",\"program\":[{\"id\":\"r\",\"condition\":\"true\",\"output\":1}],\"facts\":{},\"budget\":-1}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed_budget)
+}
+
+///|
+test "run program per-record errors" {
+  let program = sample_program()
+  let result = run(
+    record([
+      ("operation", String("run_program")),
+      ("program", program),
+      ("facts", parse_value("[{\"age\":20},{}]")),
+    ]),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "result", "decision"]),
+    parse_value("\"adult\""),
+  )
+  match test_at(result, ["results", "1"]) {
+    Object(fields) => assert_true(fields.contains("error"))
+    _ => assert_true(false)
+  }
+}
