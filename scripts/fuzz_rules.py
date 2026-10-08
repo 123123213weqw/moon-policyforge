@@ -90,6 +90,7 @@ def stable_key(text):
 def main():
     rule_sets = []
     requests = []
+    compiled_refs = []
     for _ in range(120):
         count = random.randint(1, 5)
         ids = random.sample(["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"], count)
@@ -115,6 +116,16 @@ def main():
         }
         rule_sets.append((rules, facts, mode))
         requests.append(request)
+        # The same rule set through the compile-once run-many path must
+        # decide identically: canonicalized programs are behaviorally
+        # transparent.
+        compile_request = {
+            "operation": "compile_rules",
+            "rules": request["rules"],
+        }
+        requests.append(compile_request)
+        compiled_at = len(requests) - 1
+        compiled_refs.append(compiled_at)
     payload = "".join(json.dumps(request) + "\n" for request in requests)
     handle = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8")
     handle.write(payload)
@@ -126,9 +137,14 @@ def main():
     if not result.stdout:
         sys.exit(result.stderr or "no CLI output")
     lines = result.stdout.strip().split("\n")
-    assert len(lines) == len(rule_sets), f"expected {len(rule_sets)} lines, got {len(lines)}"
+    assert len(lines) == len(requests), f"expected {len(requests)} lines, got {len(lines)}"
+    programs = {}
+    for at, line in zip(compiled_refs, [lines[i] for i in compiled_refs]):
+        programs[at] = json.loads(line)["program"]
+    decide_lines = [line for i, line in enumerate(lines) if i not in set(compiled_refs)]
+    assert len(decide_lines) == len(rule_sets)
     modes_agreed = 0
-    for (rules, facts, mode), line in zip(rule_sets, lines):
+    for (rules, facts, mode), line in zip(rule_sets, decide_lines):
         output = json.loads(line)
         detail = output["results"][0]["result"]
         expected = oracle_decide(rules, facts, mode, "default_out")
@@ -145,7 +161,7 @@ def main():
         )
         assert detail["steps"] > 0
         modes_agreed += 1
-    print(f"Decide differential passed: {modes_agreed}/120 rule sets agree on all modes")
+    print(f"Decide differential passed: {modes_agreed}/120 rule sets agree on all modes (programs compiled: {len(programs)})")
 
 
 main()
