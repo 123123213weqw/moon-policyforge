@@ -168,8 +168,10 @@ fn rule_graph_request(request : Value) -> Value raise {
       ]),
     )
   }
+  let sorted_ids = ids.copy()
+  sorted_ids.sort_by(fn(a, b) { stable_string_compare(a, b) })
   record([
-    ("nodes", strings(ids)),
+    ("nodes", strings(sorted_ids)),
     ("edges", Array(edges)),
     ("components", Array(components)),
     ("isolated", strings(isolated)),

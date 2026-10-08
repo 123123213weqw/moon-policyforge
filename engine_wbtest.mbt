@@ -1743,3 +1743,95 @@ test "coverage validates budget" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "rule graph links shared dependencies" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"rule_graph\",\"rules\":[{\"id\":\"b\",\"when\":\"amount > 5\"},{\"id\":\"a\",\"when\":\"amount < 100 && tier == \\\"g\\\"\",\"compute\":\"amount * 2\"},{\"id\":\"c\",\"when\":\"color != null\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["nodes"]), parse_value("[\"a\",\"b\",\"c\"]"))
+  match test_at(result, ["edges"]) {
+    Array(edges) => {
+      assert_eq(edges.length(), 1)
+      assert_eq(test_at(edges[0], ["a"]), parse_value("\"a\""))
+      assert_eq(test_at(edges[0], ["b"]), parse_value("\"b\""))
+      assert_eq(test_at(edges[0], ["shared"]), parse_value("[\"amount\"]"))
+    }
+    _ => assert_true(false)
+  }
+  match test_at(result, ["components"]) {
+    Array(components) => {
+      assert_eq(components.length(), 2)
+      assert_eq(components[0], parse_value("[\"a\",\"b\"]"))
+      assert_eq(components[1], parse_value("[\"c\"]"))
+    }
+    _ => assert_true(false)
+  }
+  assert_eq(test_at(result, ["isolated"]), parse_value("[\"c\"]"))
+}
+
+///|
+test "rule graph hub ranking" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"rule_graph\",\"rules\":[{\"id\":\"r1\",\"when\":\"x > 1\"},{\"id\":\"r2\",\"when\":\"x < 9 && y == 1\"},{\"id\":\"r3\",\"when\":\"z == y\"}]}",
+    ),
+  )
+  match test_at(result, ["hubs"]) {
+    Array(hubs) => {
+      assert_eq(test_at(hubs[0], ["path"]), parse_value("\"x\""))
+      assert_eq(test_at(hubs[0], ["rule_count"]), parse_value("2"))
+      assert_eq(test_at(hubs[1], ["path"]), parse_value("\"y\""))
+      assert_eq(test_at(hubs[1], ["rule_count"]), parse_value("2"))
+      assert_eq(test_at(hubs[2], ["rule_count"]), parse_value("1"))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "rule graph transitive components merge" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"rule_graph\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"b\",\"when\":\"x > 2 && y < 3\"},{\"id\":\"c\",\"when\":\"y > 4\"}]}",
+    ),
+  )
+  match test_at(result, ["components"]) {
+    Array(components) => {
+      assert_eq(components.length(), 1)
+      assert_eq(components[0], parse_value("[\"a\",\"b\",\"c\"]"))
+    }
+    _ => assert_true(false)
+  }
+  assert_eq(test_at(result, ["isolated"]), parse_value("[]"))
+}
+
+///|
+test "rule graph empty input" {
+  let result = run(
+    parse_value("{\"operation\":\"rule_graph\",\"rules\":[]}"),
+  )
+  assert_eq(test_at(result, ["nodes"]), parse_value("[]"))
+  assert_eq(test_at(result, ["edges"]), parse_value("[]"))
+  assert_eq(test_at(result, ["isolated"]), parse_value("[]"))
+}
+
+///|
+test "rule graph rejects duplicate ids" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"rule_graph\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"a\",\"when\":\"y > 1\"}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

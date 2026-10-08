@@ -1113,5 +1113,40 @@
       "rules/1/hits": 1
     },
     "error": false
+  },
+  {
+    "name": "rule graph components",
+    "request": {
+      "operation": "rule_graph",
+      "rules": [
+        {
+          "id": "a",
+          "when": "amount < 100 && tier == \"g\"",
+          "compute": "amount * 2"
+        },
+        {
+          "id": "b",
+          "when": "amount > 5"
+        },
+        {
+          "id": "c",
+          "when": "color != null"
+        }
+      ]
+    },
+    "expected": {
+      "edges/0/shared/0": "amount",
+      "components/0": [
+        "a",
+        "b"
+      ],
+      "components/1": [
+        "c"
+      ],
+      "isolated": [
+        "c"
+      ]
+    },
+    "error": false
   }
 ]
