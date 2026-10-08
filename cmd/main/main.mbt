@@ -12,15 +12,17 @@ extern "js" fn status(code : Int) -> Unit =
   #| (code) => { process.exitCode = code; }
 
 ///|
-/// Executes one parsed request and returns its compact JSON result line.
-/// Request-level failures become {"error": ...} lines; the caller keeps
-/// streaming so one bad request never hides later results.
-fn process_line(request : Json) -> String {
+/// Executes one parsed request. Returns the compact JSON result line
+/// and whether the request failed; the caller keeps streaming so one
+/// bad request never hides later results.
+fn process_line(request : Json) -> (String, Bool) {
   try {
-    @engine.execute(request).stringify()
+    (@engine.execute(request).stringify(), false)
   } catch {
-    error =>
-      Json::object({ "error": Json::string(error.to_string()) }).stringify()
+    error => (
+      Json::object({ "error": Json::string(error.to_string()) }).stringify(),
+      true,
+    )
   }
 }
 
@@ -36,15 +38,19 @@ fn run_jsonl(content : String) -> Int {
     if text == "" {
       continue
     }
-    let result = try {
-      process_line(@json.parse(text))
+    let line : String = try {
+      let (rendered, failed) = process_line(@json.parse(text))
+      if failed {
+        failures += 1
+      }
+      rendered
     } catch {
       error => {
         failures += 1
         Json::object({ "error": Json::string(error.to_string()) }).stringify()
       }
     }
-    println(result)
+    println(line)
   }
   ignore(index)
   failures
