@@ -1228,5 +1228,55 @@
       "requested": 3
     },
     "error": false
+  },
+  {
+    "name": "ast tree",
+    "request": {
+      "operation": "ast",
+      "expression": "1 + len(items)"
+    },
+    "expected": {
+      "ast/kind": "binary",
+      "ast/op": "+",
+      "ast/right/name": "len",
+      "canonical": "1 + len(items)"
+    },
+    "error": false
+  },
+  {
+    "name": "ast parse",
+    "request": {
+      "operation": "ast",
+      "ast": {
+        "kind": "binary",
+        "op": ">=",
+        "left": {
+          "kind": "variable",
+          "path": "age"
+        },
+        "right": {
+          "kind": "literal",
+          "value": 18
+        }
+      }
+    },
+    "expected": {
+      "canonical": "age >= 18",
+      "nodes": 3
+    },
+    "error": false
+  },
+  {
+    "name": "ast rejects unknown function",
+    "request": {
+      "operation": "ast",
+      "ast": {
+        "kind": "call",
+        "name": "eval",
+        "args": []
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]

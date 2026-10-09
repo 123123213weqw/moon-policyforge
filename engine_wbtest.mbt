@@ -1983,3 +1983,102 @@ test "pick out-of-range index reported missing" {
   assert_eq(test_at(result, ["missing"]), parse_value("[\"items.5\"]"))
   assert_eq(test_at(result, ["picked"]), parse_value("{}"))
 }
+
+
+///|
+test "ast tree shape for binary and calls" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"ast\",\"expression\":\"1 + len(items)\"}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["ast", "kind"]),
+    parse_value("\"binary\""),
+  )
+  assert_eq(test_at(result, ["ast", "op"]), parse_value("\"+\""))
+  assert_eq(
+    test_at(result, ["ast", "left", "kind"]),
+    parse_value("\"literal\""),
+  )
+  assert_eq(
+    test_at(result, ["ast", "right", "name"]),
+    parse_value("\"len\""),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"1 + len(items)\""))
+}
+
+///|
+test "ast parse direction rebuilds expression" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"ast\",\"ast\":{\"kind\":\"binary\",\"op\":\">=\",\"left\":{\"kind\":\"variable\",\"path\":\"age\"},\"right\":{\"kind\":\"literal\",\"value\":18}}}",
+    ),
+  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"age >= 18\""))
+  assert_eq(test_at(result, ["nodes"]), parse_value("3"))
+  assert_eq(test_at(result, ["depth"]), parse_value("2"))
+}
+
+///|
+test "ast rejects unknown kinds and operators" {
+  let bad_kind = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"ast\",\"ast\":{\"kind\":\"quantum\"}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(bad_kind)
+  let bad_op = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"ast\",\"ast\":{\"kind\":\"binary\",\"op\":\"<>\",\"left\":{\"kind\":\"literal\",\"value\":1},\"right\":{\"kind\":\"literal\",\"value\":2}}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(bad_op)
+  let bad_fn = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"ast\",\"ast\":{\"kind\":\"call\",\"name\":\"eval\",\"args\":[]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(bad_fn)
+}
+
+///|
+test "ast roundtrip through both directions" {
+  let source = run(
+    parse_value(
+      "{\"operation\":\"ast\",\"expression\":\"count_matches(scores, \\\">\\\", 5) > 1\"}",
+    ),
+  )
+  let tree = test_at(source, ["ast"])
+  let back = run(
+    record([
+      ("operation", String("ast")),
+      ("ast", tree),
+    ]),
+  )
+  assert_eq(
+    test_at(back, ["canonical"]),
+    parse_value("\"count_matches(scores, \\\">\\\", 5) > 1\""),
+  )
+}

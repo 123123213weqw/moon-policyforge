@@ -1035,3 +1035,24 @@ Expected result fields:
 ```
 
 `pick` projects a fact record onto an explicit path list, producing a nested object with only the requested paths; numeric segments index arrays. Missing or out-of-range paths are listed under `missing` in character order instead of being silently dropped; duplicate paths are rejected.
+
+## ast
+
+```json
+{
+  "operation": "ast",
+  "expression": "1 + len(items)"
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "ast/kind": "binary",
+  "ast/op": "+",
+  "canonical": "1 + len(items)"
+}
+```
+
+`ast` converts expression source to an explicit JSON tree — `literal`, `variable`, `unary`, `binary` and `call` nodes — or accepts such a tree under `"ast"` and compiles it back. Parse-direction requests validate kinds, operators and the function allow-list with coded errors and re-compile the canonical rendering to guarantee round-trip safety, so external tooling can manipulate rules as data safely.
