@@ -67,15 +67,19 @@ moon test --target wasm-gc
 moon test --target native  # requires a C compiler
 moon build --target js
 node scripts/check.mjs
+node scripts/verify.mjs  # everything below in one fail-fast ladder
 python -B scripts/reference.py
 python -B scripts/scale_check.py
 python -B scripts/error_codes.py
 python -B scripts/fuzz_diff.py
+python -B scripts/fuzz_rules.py
+python -B scripts/check_docs.py
 node scripts/jsonl_check.mjs
+node scripts/smoke.mjs
 node scripts/bench.mjs
 ```
 
-There are 57 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. See the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 57 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 
