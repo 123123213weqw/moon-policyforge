@@ -135,6 +135,12 @@ pub fn run(request : Value) -> Value raise {
   if operation == "bundle_resolve" {
     return bundle_resolve_request(request)
   }
+  if operation == "decision_table" {
+    return decision_table_request(request)
+  }
+  if operation == "decide_table" {
+    return decide_table_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
