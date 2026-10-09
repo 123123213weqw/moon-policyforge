@@ -1056,3 +1056,26 @@ Expected result fields:
 ```
 
 `ast` converts expression source to an explicit JSON tree — `literal`, `variable`, `unary`, `binary` and `call` nodes — or accepts such a tree under `"ast"` and compiles it back. Parse-direction requests validate kinds, operators and the function allow-list with coded errors and re-compile the canonical rendering to guarantee round-trip safety, so external tooling can manipulate rules as data safely.
+
+## bundle_validate / bundle_resolve
+
+```json
+{
+  "operation": "bundle_validate",
+  "versions": [
+    { "version": "1.0.0", "rules": [ { "id": "base", "when": "true", "output": 1 } ] },
+    { "version": "1.1.0", "deprecates": ["1.0.0"], "rules": [ { "id": "base", "when": "x > 1", "output": 2 } ] }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "head": "1.1.0",
+  "chain/0": "1.0.0 -> 1.1.0"
+}
+```
+
+A bundle is a named, versioned rule set with an ordered migration chain. `bundle_validate` compiles every version's program, rejects duplicate versions, empty rule sets and unknown deprecation targets, and reports the head plus the version chain. `bundle_resolve` adds a `current` version and returns the pending steps in application order with `pending_rule_count`, flags `up_to_date` callers, and rejects current versions the bundle does not contain.
