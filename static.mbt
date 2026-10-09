@@ -239,6 +239,16 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           ignore(self.require(kinds[0], "array", "concat"))
           "string"
         }
+        ("count_matches", 3) => {
+          ignore(self.require(kinds[0], "array", "count_matches"))
+          ignore(self.require(kinds[1], "string", "count_matches"))
+          ignore(self.require(kinds[2], "number", "count_matches"))
+          "number"
+        }
+        ("any_match", 1) | ("all_match", 1) => {
+          ignore(self.require(kinds[0], "array", name))
+          "boolean"
+        }
         ("min", 2) | ("max", 2) => {
           ignore(self.require(kinds[0], "number", name))
           ignore(self.require(kinds[1], "number", name))

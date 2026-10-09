@@ -163,7 +163,7 @@ fn Parser::expression(
       if self.take() != ")" {
         raise input_error("E1005", "expected closing parenthesis")
       }
-      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil", "round", "min", "max", "sum", "concat"].contains(token) {
+      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil", "round", "min", "max", "sum", "concat", "count_matches", "any_match", "all_match"].contains(token) {
         raise input_error("E1008", "unknown function: " + token)
       }
       Call(token, args)
@@ -321,6 +321,10 @@ fn evaluate(
           }
           Number(acc)
         }
+        ("count_matches", [Array(items), String(op), Number(threshold)]) =>
+          count_matches(items, threshold, op)
+        ("any_match", [Array(items)]) => any_match(items)
+        ("all_match", [Array(items)]) => all_match(items)
         ("concat", [Array(items)]) => {
           let mut acc = ""
           for item in items {
