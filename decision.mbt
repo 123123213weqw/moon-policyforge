@@ -129,6 +129,12 @@ pub fn run(request : Value) -> Value raise {
   if operation == "ast" {
     return ast_request(request)
   }
+  if operation == "bundle_validate" {
+    return bundle_validate_request(request)
+  }
+  if operation == "bundle_resolve" {
+    return bundle_resolve_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
