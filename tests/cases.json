@@ -1148,5 +1148,55 @@
       ]
     },
     "error": false
+  },
+  {
+    "name": "count_matches",
+    "request": {
+      "operation": "evaluate",
+      "expression": "count_matches(scores, \">\", 5)",
+      "facts": {
+        "scores": [
+          3,
+          7,
+          9,
+          5
+        ]
+      }
+    },
+    "expected": {
+      "value": 2
+    },
+    "error": false
+  },
+  {
+    "name": "count_matches rejects bad operator",
+    "request": {
+      "operation": "evaluate",
+      "expression": "count_matches(scores, \"~\", 5)",
+      "facts": {
+        "scores": [
+          1
+        ]
+      }
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "any_match",
+    "request": {
+      "operation": "evaluate",
+      "expression": "any_match(flags)",
+      "facts": {
+        "flags": [
+          false,
+          true
+        ]
+      }
+    },
+    "expected": {
+      "value": true
+    },
+    "error": false
   }
 ]

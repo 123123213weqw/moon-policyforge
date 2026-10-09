@@ -1835,3 +1835,92 @@ test "rule graph rejects duplicate ids" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "count_matches scores thresholds" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"count_matches(scores, \\\">\\\", 5) >= 2\",\"facts\":{\"scores\":[3,7,9,5]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+}
+
+///|
+test "count_matches rejects unknown operator" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"count_matches(scores, \\\"~\\\", 5)\",\"facts\":{\"scores\":[1]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "count_matches rejects non-numeric elements" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"count_matches(scores, \\\">\\\", 5)\",\"facts\":{\"scores\":[1,\"x\"]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "any and all match reduce booleans" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"any_match(flags) && !all_match(flags)\",\"facts\":{\"flags\":[false,true,false]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["value"]), parse_value("true"))
+  let none = run(
+    parse_value(
+      "{\"operation\":\"evaluate\",\"expression\":\"all_match(flags)\",\"facts\":{\"flags\":[]}}",
+    ),
+  )
+  assert_eq(test_at(none, ["value"]), parse_value("true"))
+}
+
+///|
+test "any match rejects non-boolean elements" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"evaluate\",\"expression\":\"any_match(flags)\",\"facts\":{\"flags\":[true,1]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "check pins quantifier signatures" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"check\",\"expression\":\"count_matches(scores, \\\">\\\", 5) == 1 && any_match(flags)\",\"schema\":{\"scores\":\"array\",\"flags\":\"array\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("true"))
+  assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
+}

@@ -966,3 +966,47 @@ Expected result fields:
 ```
 
 `coverage` evaluates every rule condition across the batch with independent fuel per record and reports per-rule hits, evaluated counts, errors and hit rates; batch-level covered, multi-hit and error record counts; never-hit and always-hit rule counts; and the full matched-rule pattern distribution sorted character-wise with shares. Per-record failures count toward the failing rule's error tally and shrink its evaluation base without aborting the batch.
+
+## count_matches
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "count_matches(scores, \">\", 5)",
+  "facts": {
+    "scores": [3, 7, 9, 5]
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": 2
+}
+```
+
+`count_matches` takes an array of numbers, one of `<` `<=` `>` `>=` `==` `!=`, and a threshold; unknown operators and non-numeric elements are input errors.
+
+## any_match and all_match
+
+```json
+{
+  "operation": "evaluate",
+  "expression": "any_match(flags) && !all_match(flags)",
+  "facts": {
+    "flags": [false, true, false]
+  }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "value": true
+}
+```
+
+Both reduce boolean arrays; non-boolean elements are input errors. `all_match` on an empty array is vacuously true.
