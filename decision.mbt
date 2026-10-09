@@ -126,6 +126,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "pick" {
     return pick_request(request)
   }
+  if operation == "ast" {
+    return ast_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
