@@ -1924,3 +1924,62 @@ test "check pins quantifier signatures" {
   assert_eq(test_at(result, ["ok"]), parse_value("true"))
   assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
 }
+
+
+///|
+test "pick projects nested paths" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"pick\",\"facts\":{\"user\":{\"age\":30,\"name\":\"bob\"},\"tags\":[\"x\",\"y\"]},\"paths\":[\"user.age\",\"tags.1\",\"user.email\"]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["picked", "user", "age"]),
+    parse_value("30"),
+  )
+  assert_eq(
+    test_at(result, ["picked", "tags", "1"]),
+    parse_value("\"y\""),
+  )
+  assert_eq(test_at(result, ["missing"]), parse_value("[\"user.email\"]"))
+  assert_eq(test_at(result, ["requested"]), parse_value("3"))
+}
+
+///|
+test "pick rejects duplicate paths" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"pick\",\"facts\":{},\"paths\":[\"a\",\"a\"]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "pick all present leaves missing empty" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"pick\",\"facts\":{\"a\":{\"b\":1}},\"paths\":[\"a.b\"]}",
+    ),
+  )
+  assert_eq(test_at(result, ["missing"]), parse_value("[]"))
+  assert_eq(test_at(result, ["picked", "a", "b"]), parse_value("1"))
+}
+
+///|
+test "pick out-of-range index reported missing" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"pick\",\"facts\":{\"items\":[1]},\"paths\":[\"items.5\"]}",
+    ),
+  )
+  assert_eq(test_at(result, ["missing"]), parse_value("[\"items.5\"]"))
+  assert_eq(test_at(result, ["picked"]), parse_value("{}"))
+}

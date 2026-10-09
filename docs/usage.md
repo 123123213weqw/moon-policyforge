@@ -1010,3 +1010,28 @@ Expected result fields:
 ```
 
 Both reduce boolean arrays; non-boolean elements are input errors. `all_match` on an empty array is vacuously true.
+
+## pick
+
+```json
+{
+  "operation": "pick",
+  "facts": {
+    "user": { "age": 30, "name": "bob" },
+    "tags": ["x", "y"]
+  },
+  "paths": ["user.age", "tags.1", "user.email"]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "picked/user/age": 30,
+  "picked/tags/1": "y",
+  "missing": ["user.email"]
+}
+```
+
+`pick` projects a fact record onto an explicit path list, producing a nested object with only the requested paths; numeric segments index arrays. Missing or out-of-range paths are listed under `missing` in character order instead of being silently dropped; duplicate paths are rejected.

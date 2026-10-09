@@ -1198,5 +1198,35 @@
       "value": true
     },
     "error": false
+  },
+  {
+    "name": "pick projection",
+    "request": {
+      "operation": "pick",
+      "facts": {
+        "user": {
+          "age": 30,
+          "name": "bob"
+        },
+        "tags": [
+          "x",
+          "y"
+        ]
+      },
+      "paths": [
+        "user.age",
+        "tags.1",
+        "user.email"
+      ]
+    },
+    "expected": {
+      "picked/user/age": 30,
+      "picked/tags/1": "y",
+      "missing": [
+        "user.email"
+      ],
+      "requested": 3
+    },
+    "error": false
   }
 ]
