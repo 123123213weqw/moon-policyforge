@@ -1278,5 +1278,76 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "bundle validate",
+    "request": {
+      "operation": "bundle_validate",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "base",
+              "when": "true",
+              "output": 1
+            }
+          ]
+        },
+        {
+          "version": "1.1.0",
+          "deprecates": [
+            "1.0.0"
+          ],
+          "rules": [
+            {
+              "id": "base",
+              "when": "x > 1",
+              "output": 2
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "head": "1.1.0",
+      "chain/0": "1.0.0 -> 1.1.0",
+      "rule_count_total": 2
+    },
+    "error": false
+  },
+  {
+    "name": "bundle resolve up to date",
+    "request": {
+      "operation": "bundle_resolve",
+      "current": "1.1.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rules": [
+            {
+              "id": "base",
+              "when": "true",
+              "output": 1
+            }
+          ]
+        },
+        {
+          "version": "1.1.0",
+          "rules": [
+            {
+              "id": "base",
+              "when": "x > 1",
+              "output": 2
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "up_to_date": true,
+      "pending_count": 0
+    },
+    "error": false
   }
 ]

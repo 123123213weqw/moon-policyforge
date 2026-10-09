@@ -2082,3 +2082,120 @@ test "ast roundtrip through both directions" {
     parse_value("\"count_matches(scores, \\\">\\\", 5) > 1\""),
   )
 }
+
+
+///|
+fn sample_bundle() -> Value raise {
+  parse_value(
+    "{\"versions\":[{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"base\",\"when\":\"true\",\"output\":1}]},{\"version\":\"1.1.0\",\"deprecates\":[\"1.0.0\"],\"rules\":[{\"id\":\"base\",\"when\":\"x > 1\",\"output\":2},{\"id\":\"extra\",\"when\":\"x > 2\",\"output\":3}]}]}",
+  )
+}
+
+///|
+test "bundle validate reports head and chain" {
+  let result = run(record([("operation", String("bundle_validate")), ("versions", get(sample_bundle(), "versions"))]))
+  assert_eq(test_at(result, ["head"]), parse_value("\"1.1.0\""))
+  assert_eq(
+    test_at(result, ["chain", "0"]),
+    parse_value("\"1.0.0 -> 1.1.0\""),
+  )
+  assert_eq(test_at(result, ["rule_count_total"]), parse_value("3"))
+  assert_eq(
+    test_at(result, ["steps", "1", "duplicate_conditions"]),
+    parse_value("0"),
+  )
+}
+
+///|
+test "bundle validate rejects duplicates and empty versions" {
+  let dup = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"bundle_validate\",\"versions\":[{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":1}]},{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":1}]}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(dup)
+  let empty = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"bundle_validate\",\"versions\":[{\"version\":\"1.0.0\",\"rules\":[]}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(empty)
+}
+
+///|
+test "bundle validate rejects unknown deprecation" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"bundle_validate\",\"versions\":[{\"version\":\"2.0.0\",\"deprecates\":[\"0.9.0\"],\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":1}]}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "bundle resolve pending steps from current" {
+  let result = run(
+    record([
+      ("operation", String("bundle_resolve")),
+      ("current", String("1.0.0")),
+      ("versions", get(sample_bundle(), "versions")),
+    ]),
+  )
+  assert_eq(test_at(result, ["head"]), parse_value("\"1.1.0\""))
+  assert_eq(test_at(result, ["pending_count"]), parse_value("1"))
+  assert_eq(test_at(result, ["up_to_date"]), parse_value("false"))
+  assert_eq(test_at(result, ["pending_rule_count"]), parse_value("2"))
+}
+
+///|
+test "bundle resolve up to date" {
+  let result = run(
+    record([
+      ("operation", String("bundle_resolve")),
+      ("current", String("1.1.0")),
+      ("versions", get(sample_bundle(), "versions")),
+    ]),
+  )
+  assert_eq(test_at(result, ["up_to_date"]), parse_value("true"))
+  assert_eq(test_at(result, ["pending_count"]), parse_value("0"))
+}
+
+///|
+test "bundle resolve rejects unknown current" {
+  let failed = try {
+    ignore(
+      run(
+        record([
+          ("operation", String("bundle_resolve")),
+          ("current", String("9.9.9")),
+          ("versions", get(sample_bundle(), "versions")),
+        ]),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
