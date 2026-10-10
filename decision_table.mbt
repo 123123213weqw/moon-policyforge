@@ -28,24 +28,33 @@ fn compile_cell(column : String, cell : Value) -> String raise {
         rest = text.trim().to_string()
         matched = "=="
       }
-      let literal = parse_value(rest)
-      match literal {
-        Number(value) =>
+      let literal : Value? = try {
+        Some(parse_value(rest))
+      } catch {
+        _ => None
+      }
+      let rendered = match literal {
+        Some(Number(value)) => {
           if value.is_nan() || value.is_inf() {
             raise input_error(
               "E3004",
               "cell " + column + ": " + text + " is not finite",
             )
           }
-        String(_) => ()
-        Bool(_) => ()
-        _ =>
+          rest
+        }
+        Some(Bool(_)) => rest
+        Some(String(_)) | None => Json::string(rest).stringify()
+        Some(other) =>
           raise input_error(
             "E3001",
-            "cell " + column + ": unsupported literal " + text,
+            "cell " +
+            column +
+            ": unsupported literal " +
+            Value::stringify(other),
           )
       }
-      column + " " + matched + " " + rest
+      column + " " + matched + " " + rendered
     }
     Bool(flag) => column + " == " + (if flag { "true" } else { "false" })
     Number(value) => column + " == " + Json::number(value).stringify()

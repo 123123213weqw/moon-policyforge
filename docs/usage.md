@@ -1079,3 +1079,29 @@ Expected result fields:
 ```
 
 A bundle is a named, versioned rule set with an ordered migration chain. `bundle_validate` compiles every version's program, rejects duplicate versions, empty rule sets and unknown deprecation targets, and reports the head plus the version chain. `bundle_resolve` adds a `current` version and returns the pending steps in application order with `pending_rule_count`, flags `up_to_date` callers, and rejects current versions the bundle does not contain.
+
+## decision_table / decide_table
+
+```json
+{
+  "operation": "decide_table",
+  "table": {
+    "columns": ["amount"],
+    "rows": [
+      { "amount": ">= 100", "outcome": "high" },
+      { "amount": "> 0", "outcome": "low" }
+    ]
+  },
+  "facts": [{ "amount": 150 }, { "amount": 0 }]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "results/0/result/decision": "high"
+}
+```
+
+A decision table is business-authored: columns name fact paths, rows carry operator-prefixed cells (`>= 100`, `< 5`, `== "gold"`, bare words become quoted equality) and an outcome. `decision_table` compiles it to rules — row conjunctions with descending priorities so table order decides, duplicate outcomes rejected, missing cells rejected — and `decide_table` runs the compiled table over facts in one call, returning the rules for inspection.

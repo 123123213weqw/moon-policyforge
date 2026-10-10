@@ -2199,3 +2199,107 @@ test "bundle resolve rejects unknown current" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "decision table compiles ranges to rules" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"decision_table\",\"table\":{\"columns\":[\"amount\"],\"rows\":[{\"amount\":\">= 100\",\"outcome\":\"high\"},{\"amount\":\"> 0\",\"outcome\":\"low\"}]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["rules", "0", "when"]),
+    parse_value("\"amount >= 100\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "priority"]),
+    parse_value("2"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "when"]),
+    parse_value("\"amount > 0\""),
+  )
+}
+
+///|
+test "decision table multi-column conjunction" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"decision_table\",\"table\":{\"columns\":[\"tier\",\"total\"],\"rows\":[{\"tier\":\"gold\",\"total\":\">= 500\",\"outcome\":\"vip\"}]}}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "when"]),
+    parse_value("\"tier == \\\"gold\\\" && total >= 500\""),
+  )
+}
+
+///|
+test "decide table end to end" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"decide_table\",\"table\":{\"columns\":[\"amount\"],\"rows\":[{\"amount\":\">= 100\",\"outcome\":\"high\"},{\"amount\":\"> 0\",\"outcome\":\"low\"}]},\"facts\":[{\"amount\":150},{\"amount\":50},{\"amount\":0}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "result", "decision"]),
+    parse_value("\"high\""),
+  )
+  assert_eq(
+    test_at(result, ["results", "1", "result", "decision"]),
+    parse_value("\"low\""),
+  )
+  assert_eq(
+    test_at(result, ["results", "2", "result", "decision"]),
+    parse_value("null"),
+  )
+}
+
+///|
+test "decision table rejects duplicate outcomes" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"decision_table\",\"table\":{\"columns\":[\"x\"],\"rows\":[{\"x\":\"> 1\",\"outcome\":\"same\"},{\"x\":\"< 0\",\"outcome\":\"same\"}]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "decision table rejects missing cells" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"decision_table\",\"table\":{\"columns\":[\"x\",\"y\"],\"rows\":[{\"x\":\"> 1\",\"outcome\":\"ok\"}]}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
+
+///|
+test "decision table string cells compare equality" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"decide_table\",\"table\":{\"columns\":[\"tier\"],\"rows\":[{\"tier\":\"gold\",\"outcome\":\"g\"}]},\"facts\":{\"tier\":\"gold\"}}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "result", "decision"]),
+    parse_value("\"g\""),
+  )
+}

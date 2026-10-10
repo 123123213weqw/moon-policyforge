@@ -1349,5 +1349,88 @@
       "pending_count": 0
     },
     "error": false
+  },
+  {
+    "name": "decision table compile",
+    "request": {
+      "operation": "decision_table",
+      "table": {
+        "columns": [
+          "amount"
+        ],
+        "rows": [
+          {
+            "amount": ">= 100",
+            "outcome": "high"
+          },
+          {
+            "amount": "> 0",
+            "outcome": "low"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "rule_count": 2,
+      "rules/0/when": "amount >= 100",
+      "rules/0/priority": 2
+    },
+    "error": false
+  },
+  {
+    "name": "decide table",
+    "request": {
+      "operation": "decide_table",
+      "table": {
+        "columns": [
+          "amount"
+        ],
+        "rows": [
+          {
+            "amount": ">= 100",
+            "outcome": "high"
+          },
+          {
+            "amount": "> 0",
+            "outcome": "low"
+          }
+        ]
+      },
+      "facts": [
+        {
+          "amount": 150
+        },
+        {
+          "amount": 0
+        }
+      ]
+    },
+    "expected": {
+      "results/0/result/decision": "high"
+    },
+    "error": false
+  },
+  {
+    "name": "decision table duplicate outcome",
+    "request": {
+      "operation": "decision_table",
+      "table": {
+        "columns": [
+          "x"
+        ],
+        "rows": [
+          {
+            "x": "> 1",
+            "outcome": "same"
+          },
+          {
+            "x": "< 0",
+            "outcome": "same"
+          }
+        ]
+      }
+    },
+    "expected": {},
+    "error": true
   }
 ]
