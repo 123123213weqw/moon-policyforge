@@ -16,3 +16,16 @@ Every validation script is runnable from a clean checkout after `moon build --ta
 | `bench.mjs` | Throughput benchmarks for decide modes, aggregate and compound-expression evaluation; recorded numbers live in docs/benchmarks.md. |
 
 Oracle discipline: every differential script writes its expectations in plain Python from the documented semantics, never by importing engine code, so an engine regression cannot teach the oracle the wrong answer.
+
+## Reproducing a release check
+
+A release is green when, from a clean checkout:
+
+```sh
+moon update
+moon test --target js && moon test --target wasm && moon test --target wasm-gc && moon test --target native
+moon build --target js
+node scripts/verify.mjs
+```
+
+The four backend runs guard the portable core; the ladder guards behavior through the real CLI. Both together are what CI runs on every push.

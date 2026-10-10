@@ -65,6 +65,26 @@ Result: `{"groups": [{"key", "count", "metrics", "metric_errors"}...], "group_co
 
 Renders one record's decision as deterministic text. Same fields as `decide`, but `facts` must be exactly one record (E3010 otherwise). Result: `{"text", "line_count", "result"}` — `text` is a multi-line report with a mode/decision/conflict header, `[PASS]`/`[FAIL]` lines with traces, matched outputs and step counts.
 
+## decision_table / decide_table
+
+`{"table": {"columns": [...], "rows": [{"<column>": "<op> <literal>" | literal, ..., "outcome": ...}]}}` compiles a business-authored table to rules: each row becomes the conjunction of its cell predicates with descending priorities (table order decides), string cells parse their operator prefix or fall back to quoted equality, outcomes become rule IDs with duplicate rejection. `decide_table` adds `facts` (and optional mode/budget/default) and runs the compiled table, returning the rules alongside the decide report.
+
+## bundle_validate / bundle_resolve
+
+`{"versions": [{"version", "rules", "deprecates"?}...]}` compiles every version and reports `head`, the `chain`, per-step programs and aggregate counts; duplicate versions, empty rule sets and unknown deprecation targets are rejected. `bundle_resolve` adds `current` and returns `pending_steps` in application order with `pending_rule_count` and an `up_to_date` flag.
+
+## quantifiers
+
+`count_matches(array, operator, threshold)` scores numeric elements (`<`, `<=`, `>`, `>=`, `==`, `!=`); `any_match(array)` / `all_match(array)` reduce boolean arrays (empty arrays: false / true). Element coercion failures raise E3004; non-array arguments raise E2006.
+
+## pick
+
+`{"facts", "paths": [dotted...]}` projects the record onto the paths (numeric segments index arrays); picked values nest, missing or out-of-range paths are reported under `missing` in character order, duplicates are rejected.
+
+## ast
+
+`{"expression"}` converts source to a JSON tree (`literal`, `variable`, `unary`, `binary`, `call` nodes) with its canonical rendering; `{"ast": tree}` compiles a tree back, rejecting unknown kinds, operators and functions with coded errors and re-compiling the canonical rendering for round-trip safety.
+
 ## diff
 
 `{"old": rules, "new": rules}` → `{"added", "removed", "changed"}`. Rule-ID set comparison by full-rule structural equality; ID lists are sorted.
