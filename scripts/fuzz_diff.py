@@ -23,6 +23,7 @@ if not cli.exists():
 
 random.seed(20261005)
 FACTORS = [0, 1, 2, 3, 7, -1, -4, 10, 250, 999]
+THRESHOLDS = [0, 2, 5, 10]
 VARS = ["a", "b", "c"]
 
 
@@ -45,9 +46,13 @@ def gen(depth):
         return ("cmp", random.choice(["<", "<=", ">", ">=", "==", "!="]), gen(depth - 1), gen(depth - 1))
     if kind < 0.72:
         return ("and", gen(depth - 1), gen(depth - 1))
-    if kind < 0.86:
+    if kind < 0.80:
         return ("or", gen(depth - 1), gen(depth - 1))
-    return ("not", gen(depth - 1))
+    if kind < 0.86:
+        return ("not", gen(depth - 1))
+    if kind < 0.93:
+        return ("count_matches", random.choice(VARS), random.choice([">", ">=", "<", "<=", "==", "!="]), random.choice(THRESHOLDS))
+    return (random.choice(["any_match", "all_match"]), random.choice(VARS))
 
 
 def render(node):
@@ -71,6 +76,10 @@ def render(node):
         return wrap(node[1], 1) + " || " + wrap(node[2], 2)
     if kind == "not":
         return "!" + wrap(node[1], 8)
+    if kind == "count_matches":
+        return f"count_matches({node[1]}, \"{node[2]}\", {node[3]})"
+    if kind in ("any_match", "all_match"):
+        return f"{node[0]}({node[1]})"
     raise AssertionError(kind)
 
 
@@ -107,6 +116,31 @@ def boolean(value):
 
 def evaluate(node, facts):
     kind = node[0]
+    if kind == "count_matches":
+        raw = facts[node[1]]
+        if not isinstance(raw, list):
+            raise EvalError("E2006")
+        threshold = float(node[3])
+        op = node[2]
+        ops = {">": lambda v: v > threshold, ">=": lambda v: v >= threshold, "<": lambda v: v < threshold, "<=": lambda v: v <= threshold, "==": lambda v: v == threshold, "!=": lambda v: v != threshold}
+        total = 0
+        for item in raw:
+            # The engine coerces elements through num(), so non-numeric
+            # elements raise the arithmetic-operand code E3004.
+            if isinstance(item, bool) or not isinstance(item, (int, float)):
+                raise EvalError("E3004")
+            total += 1 if ops[op](float(item)) else 0
+        return float(total)
+    if kind in ("any_match", "all_match"):
+        raw = facts[node[1]]
+        if not isinstance(raw, list):
+            raise EvalError("E2006")
+        flags = []
+        for item in raw:
+            if not isinstance(item, bool):
+                raise EvalError("E2002")
+            flags.append(item)
+        return any(flags) if kind == "any_match" else all(flags)
     if kind == "num":
         return float(node[1])
     if kind == "var":
@@ -150,6 +184,12 @@ def evaluate(node, facts):
     raise AssertionError(kind)
 
 
+def boolean_of(value):
+    if not isinstance(value, bool):
+        raise EvalError("E2002")
+    return value
+
+
 def strict_equals(left, right):
     left_bool = isinstance(left, bool)
     right_bool = isinstance(right, bool)
@@ -171,7 +211,14 @@ def number(value):
 def main():
     cases = []
     for _ in range(500):
-        facts = {name: float(random.choice(FACTORS)) for name in VARS}
+        facts = {}
+        for name in VARS:
+            if random.random() < 0.35:
+                facts[name] = [float(random.choice(FACTORS)) for _ in range(random.randint(0, 4))]
+            elif random.random() < 0.55:
+                facts[name] = [random.random() < 0.5 for _ in range(random.randint(0, 4))]
+            else:
+                facts[name] = float(random.choice(FACTORS))
         node = gen(random.randint(2, 6))
         cases.append((render(node), facts, node))
     payload = "".join(
