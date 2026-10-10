@@ -3,8 +3,14 @@
 The oracle re-implements the decision table in plain Python. The script
 asserts per-index agreement, hit-rule attribution through the explanation
 chain, positive step accounting, and prints a deterministic hit distribution.
+
+Usage: python3 -B scripts/scale_check.py [--count N]
+
+--count scales the batch (default 100,000; the CLI caps a request at
+16 MiB, so counts beyond roughly 300k must be chunked by the caller).
 """
 
+import argparse
 import json
 import subprocess
 import sys
@@ -54,7 +60,11 @@ def oracle(record):
 
 
 def main():
-    records = [fact(i) for i in range(COUNT)]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--count', type=int, default=COUNT, help='number of facts')
+    args = parser.parse_args()
+    count = args.count
+    records = [fact(i) for i in range(count)]
     request = {
         "operation": "decide",
         "rules": RULES,
@@ -79,7 +89,7 @@ def main():
     output = json.loads(result.stdout)
     results = output["results"]
     assert output["rule_count"] == len(RULES)
-    assert len(results) == COUNT, f"expected {COUNT} results, got {len(results)}"
+    assert len(results) == count, f"expected {count} results, got {len(results)}"
 
     distribution = {}
     for i, entry in enumerate(results):
@@ -101,9 +111,9 @@ def main():
         assert evaluated[-1]["matched"] is True
         distribution[rule_id] = distribution.get(rule_id, 0) + 1
 
-    print(f"Scale validation passed: {COUNT} facts, {wall:.1f}s wall time")
+    print(f"Scale validation passed: {count} facts, {wall:.1f}s wall time")
     for rule_id in sorted(distribution):
-        share = 100.0 * distribution[rule_id] / COUNT
+        share = 100.0 * distribution[rule_id] / count
         print(f"  {rule_id}: {distribution[rule_id]} ({share:.1f}%)")
 
 
