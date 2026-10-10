@@ -1105,3 +1105,13 @@ Expected result fields:
 ```
 
 A decision table is business-authored: columns name fact paths, rows carry operator-prefixed cells (`>= 100`, `< 5`, `== "gold"`, bare words become quoted equality) and an outcome. `decision_table` compiles it to rules — row conjunctions with descending priorities so table order decides, duplicate outcomes rejected, missing cells rejected — and `decide_table` runs the compiled table over facts in one call, returning the rules for inspection.
+
+## Production pipeline example
+
+`examples/production-pipeline.jsonl` is a complete streaming batch: compile a rule set once, run the program over a fact batch, measure coverage on the same batch, and aggregate by tier — four requests, four result lines, one CLI invocation:
+
+```sh
+node _build/js/debug/build/cmd/main/main.js examples/production-pipeline.jsonl
+```
+
+Line 1 is the canonical program (note `amount >= 800` canonicalized from the source), line 2 carries the per-record decide reports with explanation chains, line 3 reports per-rule hit rates, and line 4 the tier aggregation. Because streaming isolates failures per line, a malformed batch entry never hides the surrounding results.
