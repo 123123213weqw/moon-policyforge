@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+  Moon PolicyForge browser demo.
+  Build the wasm-gc core and serve this file, then decide rules in the
+  browser without any backend:
+
+    moon build --target wasm-gc
+    python3 -m http.server 8000   # from the repository root
+    # open http://localhost:8000/examples/demo.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Moon PolicyForge browser demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  textarea { width: 100%; height: 9rem; font-family: ui-monospace, monospace; }
+  button { padding: 0.4rem 1rem; }
+  pre { background: #f4f4f4; padding: 0.75rem; overflow: auto; }
+</style>
+</head>
+<body>
+<h1>Moon PolicyForge</h1>
+<p>Decides a request through the wasm-gc core compiled from the same MoonBit source as the CLI and the library.</p>
+<textarea id="request">{
+  "operation": "decide",
+  "mode": "first",
+  "rules": [
+    { "id": "vip", "priority": 2, "when": "tier == \"gold\" && total >= 500", "compute": "total * 0.15" },
+    { "id": "member", "priority": 1, "when": "tier == \"gold\"", "compute": "total * 0.10" },
+    { "id": "none", "priority": 0, "when": "true", "output": 0 }
+  ],
+  "facts": { "tier": "gold", "total": 680 }
+}</textarea>
+<p><button id="run">Decide</button></p>
+<pre id="output">Press Decide to run the engine.</pre>
+<script type="module">
+const output = document.getElementById('output');
+document.getElementById('run').onclick = async () => {
+  try {
+    const {execute} = await import('../_build/wasm-gc/release/build/cmd/main/main.wasm.js');
+    const request = JSON.parse(document.getElementById('request').value);
+    const result = execute(request);
+    output.textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    output.textContent = 'Error: ' + (error && error.message ? error.message : String(error));
+  }
+};
+</script>
+</body>
+</html>

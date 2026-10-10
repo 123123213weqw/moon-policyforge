@@ -1115,3 +1115,15 @@ node _build/js/debug/build/cmd/main/main.js examples/production-pipeline.jsonl
 ```
 
 Line 1 is the canonical program (note `amount >= 800` canonicalized from the source), line 2 carries the per-record decide reports with explanation chains, line 3 reports per-rule hit rates, and line 4 the tier aggregation. Because streaming isolates failures per line, a malformed batch entry never hides the surrounding results.
+
+## Browser demo
+
+`examples/demo.html` decides a request in the browser through the wasm-gc core built from the same source as the CLI:
+
+```sh
+moon build --target wasm-gc
+python3 -m http.server 8000   # repository root
+# open http://localhost:8000/examples/demo.html
+```
+
+The page imports the generated wasm module, parses the request JSON from the text area, and renders the structured result — the identical `execute` boundary the library exposes.
