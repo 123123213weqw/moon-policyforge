@@ -108,6 +108,52 @@ check('diff', () => {
   assert.deepEqual(result.added, ['b']);
 });
 
+check('decision_table and decide_table', () => {
+  const compiled = engine({
+    operation: 'decision_table',
+    table: {columns: ['amount'], rows: [{amount: '>= 100', outcome: 'high'}, {amount: '> 0', outcome: 'low'}]},
+  });
+  assert.equal(compiled.rule_count, 2);
+  assert.equal(compiled.rules[0].when, 'amount >= 100');
+  const decided = engine({
+    operation: 'decide_table',
+    table: {columns: ['amount'], rows: [{amount: '>= 100', outcome: 'high'}]},
+    facts: {amount: 150},
+  });
+  assert.equal(decided.results[0].result.decision, 'high');
+});
+
+check('bundle validate and resolve', () => {
+  const versions = [
+    {version: '1.0.0', rules: [{id: 'base', when: 'true', output: 1}]},
+    {version: '1.1.0', rules: [{id: 'base', when: 'x > 1', output: 2}]},
+  ];
+  const validated = engine({operation: 'bundle_validate', versions});
+  assert.equal(validated.head, '1.1.0');
+  const current = engine({operation: 'bundle_resolve', current: '1.0.0', versions});
+  assert.equal(current.pending_count, 1);
+  assert.equal(current.up_to_date, false);
+});
+
+check('quantifiers', () => {
+  const result = engine({operation: 'evaluate', expression: 'count_matches(scores, ">", 5)', facts: {scores: [3, 7, 9]}});
+  assert.equal(result.value, 2);
+  assert.equal(engine({operation: 'evaluate', expression: 'any_match(flags)', facts: {flags: [false, true]}}).value, true);
+});
+
+check('pick projection', () => {
+  const result = engine({operation: 'pick', facts: {user: {age: 30}}, paths: ['user.age', 'user.missing']});
+  assert.equal(result.picked.user.age, 30);
+  assert.deepEqual(result.missing, ['user.missing']);
+});
+
+check('ast interchange', () => {
+  const tree = engine({operation: 'ast', expression: 'age >= 18'});
+  assert.equal(tree.ast.kind, 'binary');
+  const back = engine({operation: 'ast', ast: tree.ast});
+  assert.equal(back.canonical, 'age >= 18');
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');
