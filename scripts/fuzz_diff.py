@@ -5,8 +5,14 @@ independent recursive-descent oracle written in plain Python, and
 compares against the real CLI in a single JSONL streaming call. Error
 classes must match by E-code (E2008 division by zero, E2007 non-finite
 results); values must match exactly after JSON parsing.
+
+Usage: python3 -B scripts/fuzz_diff.py [--seed S] [--count N]
+
+--seed changes the generator seed (default 20261005); --count scales
+the batch (default 500).
 """
 
+import argparse
 import json
 import math
 import os
@@ -209,8 +215,13 @@ def number(value):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--seed', type=int, default=20261005)
+    parser.add_argument('--count', type=int, default=500)
+    args = parser.parse_args()
+    random.seed(args.seed)
     cases = []
-    for _ in range(500):
+    for _ in range(args.count):
         facts = {}
         for name in VARS:
             if random.random() < 0.35:
@@ -252,7 +263,7 @@ def main():
         actual = output["value"]
         assert actual == expected, f"{text}: expected {expected}, got {actual}\nAST: {node!r}"
         agreement += 1
-    print(f"Differential fuzz passed: {agreement}/500 expressions agree on values and error codes")
+    print(f"Differential fuzz passed: {agreement}/{args.count} expressions agree on values and error codes")
 
 
 main()
