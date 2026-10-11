@@ -1,3 +1,6 @@
+// End-to-end cases for .jsonl streaming: per-line error isolation,
+// blank-line skipping, compact output, nonzero exit on any failure,
+// and the guarantee that stdin stays single-request mode.
 import {spawnSync} from 'node:child_process';
 import {engine, root} from './engine.mjs';
 import path from 'node:path';

@@ -1,3 +1,6 @@
+// Full-operation smoke pass: one executable check per engine
+// operation plus the compile-run loop, quantifiers, pick, AST
+// interchange, coded error surfacing and JSONL isolation.
 import {spawnSync} from 'node:child_process';
 import {engine, root} from './engine.mjs';
 import path from 'node:path';

@@ -1,3 +1,6 @@
+// Replays the JSON fixtures in tests/cases.json through the real CLI:
+// error-marked cases must exit nonzero, everything else must produce
+// output matching the documented expected fields (dotted key paths).
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';

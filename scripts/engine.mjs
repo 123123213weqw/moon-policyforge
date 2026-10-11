@@ -1,3 +1,6 @@
+// Shared harness: resolves the repository root, spawns the compiled
+// CLI as a subprocess for one request, and exposes the safeFile path
+// guard used by host-side examples.
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
