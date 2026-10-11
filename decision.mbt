@@ -141,6 +141,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "decide_table" {
     return decide_table_request(request)
   }
+  if operation == "lint" {
+    return lint_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
