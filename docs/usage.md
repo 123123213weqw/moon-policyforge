@@ -1152,3 +1152,27 @@ Expected result fields:
 ```
 
 `lint` is the one-call governance gate over a rule set: it runs the static analysis (tautologies, duplicate conditions with shadow direction, priority ties), schema type checking when a `schema` is supplied, and bundle integrity when `versions` is supplied. Every section runs even when earlier ones report problems; findings carry their `source` section, and the `summary` block counts findings per source. `ok` is true only with zero findings.
+
+## fmt
+
+```json
+{
+  "operation": "fmt",
+  "rules": [
+    { "id": "a", "when": "age>=18", "output": "adult" },
+    { "id": "b", "when": "true", "output": "other" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "changed_count": 1,
+  "changed_ids": ["a"],
+  "rules/0/when": "age >= 18"
+}
+```
+
+`fmt` rewrites a rule set to canonical form: conditions and compute through the expression renderer (minimal parentheses, single spaces), priorities normalized to explicit numbers (default 0), stable key order. `changed_ids` lists drifted rules in character order, `changed_only: true` returns just those, and the formatted rules compile to identical trees — safe to round-trip through CI as a formatting gate.

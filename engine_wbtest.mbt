@@ -2425,3 +2425,118 @@ test "lint sections all present in report" {
     _ => assert_true(false)
   }
 }
+
+
+///|
+test "fmt normalizes conditions and counts changes" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"fmt\",\"rules\":[{\"id\":\"a\",\"when\":\"age>=18\"},{\"id\":\"b\",\"when\":\"age < 65\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["changed_count"]), parse_value("1"))
+  assert_eq(test_at(result, ["changed_ids"]), parse_value("[\"a\"]"))
+  assert_eq(
+    test_at(result, ["rules", "0", "when"]),
+    parse_value("\"age >= 18\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "when"]),
+    parse_value("\"age < 65\""),
+  )
+}
+
+///|
+test "fmt defaults priorities and keeps outputs" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"fmt\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":\"x\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "priority"]),
+    parse_value("0"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "output"]),
+    parse_value("\"x\""),
+  )
+}
+
+///|
+test "fmt normalizes compute too" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"fmt\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"compute\":\"total*0.1\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "compute"]),
+    parse_value("\"total * 0.1\""),
+  )
+  assert_eq(test_at(result, ["changed_ids"]), parse_value("[\"a\"]"))
+}
+
+///|
+test "fmt changed_only filters to drifted rules" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"fmt\",\"changed_only\":true,\"rules\":[{\"id\":\"a\",\"when\":\"x>=1\"},{\"id\":\"b\",\"when\":\"x > 1\"}]}",
+    ),
+  )
+  match test_at(result, ["rules"]) {
+    Array(rules) => {
+      assert_eq(rules.length(), 1)
+      assert_eq(test_at(rules[0], ["id"]), parse_value("\"a\""))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "fmt output re-decides identically" {
+  let rules_source = "[{\"id\":\"adult\",\"priority\":2,\"when\":\"age>=18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}]"
+  let before = run(
+    parse_value(
+      "{\"operation\":\"decide\",\"rules\":" +
+      rules_source +
+      ",\"facts\":{\"age\":20}}",
+    ),
+  )
+  let formatted = run(
+    parse_value("{\"operation\":\"fmt\",\"rules\":" + rules_source + "}"),
+  )
+  let after = run(
+    record([
+      ("operation", String("decide")),
+      ("rules", get(formatted, "rules")),
+      ("facts", parse_value("{\"age\":20}")),
+    ]),
+  )
+  assert_eq(
+    test_at(before, ["results", "0", "result", "decision"]),
+    test_at(after, ["results", "0", "result", "decision"]),
+  )
+  assert_eq(
+    test_at(after, ["results", "0", "result", "decision"]),
+    parse_value("\"adult\""),
+  )
+}
+
+///|
+test "fmt rejects non-string compute" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"fmt\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"compute\":5}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

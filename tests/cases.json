@@ -1508,5 +1508,53 @@
       "summary/2/findings": 1
     },
     "error": false
+  },
+  {
+    "name": "fmt normalizes ruleset",
+    "request": {
+      "operation": "fmt",
+      "rules": [
+        {
+          "id": "a",
+          "when": "age>=18",
+          "output": "adult"
+        },
+        {
+          "id": "b",
+          "when": "true",
+          "output": "other"
+        }
+      ]
+    },
+    "expected": {
+      "changed_count": 1,
+      "changed_ids": [
+        "a"
+      ],
+      "rules/0/when": "age >= 18",
+      "rules/0/priority": 0
+    },
+    "error": false
+  },
+  {
+    "name": "fmt changed only",
+    "request": {
+      "operation": "fmt",
+      "changed_only": true,
+      "rules": [
+        {
+          "id": "a",
+          "when": "x>=1"
+        },
+        {
+          "id": "b",
+          "when": "x > 1"
+        }
+      ]
+    },
+    "expected": {
+      "rules/0/id": "a"
+    },
+    "error": false
   }
 ]
