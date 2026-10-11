@@ -144,6 +144,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "lint" {
     return lint_request(request)
   }
+  if operation == "fmt" {
+    return fmt_rules_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
