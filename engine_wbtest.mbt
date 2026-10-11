@@ -2303,3 +2303,125 @@ test "decision table string cells compare equality" {
     parse_value("\"g\""),
   )
 }
+
+
+///|
+test "lint clean ruleset passes" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"}],\"schema\":{\"age\":\"number\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("true"))
+  assert_eq(test_at(result, ["finding_count"]), parse_value("0"))
+  assert_eq(test_at(result, ["summary", "0", "findings"]), parse_value("0"))
+  assert_eq(test_at(result, ["summary", "1", "findings"]), parse_value("0"))
+}
+
+///|
+test "lint collects tautology and tie together" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"x\"},{\"id\":\"a\",\"when\":\"x > 1\",\"output\":1},{\"id\":\"b\",\"when\":\"x>1\",\"output\":2}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("false"))
+  assert_eq(test_at(result, ["finding_count"]), parse_value("3"))
+  match test_at(result, ["findings"]) {
+    Array(items) => {
+      assert_eq(test_at(items[0], ["kind"]), parse_value("\"tautology\""))
+      assert_eq(
+        test_at(items[1], ["kind"]),
+        parse_value("\"duplicate_condition\""),
+      )
+      assert_eq(test_at(items[2], ["kind"]), parse_value("\"priority_tie\""))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "lint surfaces schema type errors" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"bad\",\"when\":\"amount > \\\"x\\\"\",\"output\":1}],\"schema\":{\"amount\":\"number\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["finding_count"]), parse_value("1"))
+  match test_at(result, ["findings", "0"]) {
+    Object(fields) => {
+      assert_eq(
+        fields.get("source"),
+        Some(String("types")),
+      )
+      assert_eq(
+        fields.get("kind"),
+        Some(String("type_error")),
+      )
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "lint reports bundle integrity problems" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}],\"versions\":[{\"version\":\"1.0.0\",\"rules\":[]}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("false"))
+  assert_eq(
+    test_at(result, ["summary", "2", "source"]),
+    parse_value("\"bundle\""),
+  )
+  assert_eq(
+    test_at(result, ["summary", "2", "findings"]),
+    parse_value("1"),
+  )
+}
+
+///|
+test "lint without bundle section reports zero" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("false"))
+  assert_eq(
+    test_at(result, ["summary", "0", "findings"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["summary", "2", "findings"]),
+    parse_value("0"),
+  )
+}
+
+///|
+test "lint sections all present in report" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"lint\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}]}",
+    ),
+  )
+  match test_at(result, ["sections"]) {
+    Array(sections) => {
+      assert_eq(sections.length(), 3)
+      assert_eq(
+        test_at(sections[0], ["section"]),
+        parse_value("\"analysis\""),
+      )
+      assert_eq(
+        test_at(sections[1], ["section"]),
+        parse_value("\"types\""),
+      )
+      assert_eq(
+        test_at(sections[2], ["section"]),
+        parse_value("\"bundle\""),
+      )
+    }
+    _ => assert_true(false)
+  }
+}

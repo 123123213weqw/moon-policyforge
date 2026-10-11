@@ -1127,3 +1127,28 @@ python3 -m http.server 8000   # repository root
 ```
 
 The page imports the generated wasm module, parses the request JSON from the text area, and renders the structured result — the identical `execute` boundary the library exposes.
+
+## lint
+
+```json
+{
+  "operation": "lint",
+  "rules": [
+    { "id": "fallback", "when": "true", "output": "x" },
+    { "id": "a", "when": "x > 1", "output": 1 },
+    { "id": "b", "when": "x>1", "output": 2 }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "ok": false,
+  "finding_count": 3,
+  "findings/0/kind": "tautology"
+}
+```
+
+`lint` is the one-call governance gate over a rule set: it runs the static analysis (tautologies, duplicate conditions with shadow direction, priority ties), schema type checking when a `schema` is supplied, and bundle integrity when `versions` is supplied. Every section runs even when earlier ones report problems; findings carry their `source` section, and the `summary` block counts findings per source. `ok` is true only with zero findings.

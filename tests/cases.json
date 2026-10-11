@@ -1432,5 +1432,81 @@
     },
     "expected": {},
     "error": true
+  },
+  {
+    "name": "lint clean",
+    "request": {
+      "operation": "lint",
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        }
+      ],
+      "schema": {
+        "age": "number"
+      }
+    },
+    "expected": {
+      "ok": true,
+      "finding_count": 0
+    },
+    "error": false
+  },
+  {
+    "name": "lint finds tautology and tie",
+    "request": {
+      "operation": "lint",
+      "rules": [
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "x"
+        },
+        {
+          "id": "a",
+          "when": "x > 1",
+          "output": 1
+        },
+        {
+          "id": "b",
+          "when": "x>1",
+          "output": 2
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "finding_count": 3,
+      "findings/0/kind": "tautology",
+      "findings/2/kind": "priority_tie"
+    },
+    "error": false
+  },
+  {
+    "name": "lint bundle error",
+    "request": {
+      "operation": "lint",
+      "rules": [
+        {
+          "id": "r",
+          "when": "true",
+          "output": 1
+        }
+      ],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "rules": []
+        }
+      ]
+    },
+    "expected": {
+      "ok": false,
+      "summary/2/findings": 1
+    },
+    "error": false
   }
 ]
