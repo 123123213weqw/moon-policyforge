@@ -1,6 +1,8 @@
 # Moon PolicyForge
 
-Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API.
+[![CI](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml/badge.svg)](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml)
+
+Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Seventeen operations, four backends, 137 white-box tests, 77 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
 - Package: `123123213weqw/moon_policyforge@0.4.0`
