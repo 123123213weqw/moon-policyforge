@@ -147,6 +147,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "fmt" {
     return fmt_rules_request(request)
   }
+  if operation == "export_schema" {
+    return export_schema_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
