@@ -7,3 +7,9 @@ The domain code in this repository was implemented for this project with AI codi
 - [https://www.openpolicyagent.org/docs/policy-language](https://www.openpolicyagent.org/docs/policy-language)
 
 References inform formats and algorithms; they are not claims of interoperability with every feature of the referenced systems. MoonBit core is a toolchain dependency. Python standard-library and Node built-in APIs are used by host adapters and test oracles. No prior September project implementation was copied into this domain core.
+
+## Verification tooling
+
+The Python and Node validation scripts under `scripts/` are original to this repository and depend only on their respective standard libraries (Python `json`, `argparse`, `random`, `subprocess`, `math`, `tempfile`, `pathlib`; Node `node:child_process`, `node:fs`, `node:os`, `node:path`, `node:assert`). No third-party fuzzing framework, test runner or benchmarking library is used; the differential oracles, seeded generators and the verification ladder are implemented from the documented engine semantics.
+
+Open Policy Agent remains a design reference for rule/policy concepts as described above; no OPA code, fixtures or documentation text are included.
