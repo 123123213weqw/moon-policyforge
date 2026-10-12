@@ -1223,3 +1223,29 @@ Expected result fields:
 ```
 
 `export_schema` turns an engine schema into a JSON Schema draft 2020-12 document: dotted paths become nested `properties` trees, engine type names map one-to-one (`null` to `{"type":"null"}`, `array`/`object` stay structural), and omitting `schema` falls back to inferring from `facts`.
+
+## validate
+
+```json
+{
+  "operation": "validate",
+  "schema": { "age": "number", "tier": "string" },
+  "required": ["age"],
+  "facts": [
+    { "age": 30, "tier": "gold" },
+    { "tier": "bronze" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "error_records": 1,
+  "results/0/ok": true,
+  "results/1/ok": false
+}
+```
+
+`validate` checks fact records against the check operation's schema: typed paths are type-checked when present, `required` paths must exist (a missing required path reports `found: "missing"`), and absent unrequired paths are optional. Errors carry the path, expected and found types in character order; the batch never aborts, and `error_records` / `error_count` summarize.

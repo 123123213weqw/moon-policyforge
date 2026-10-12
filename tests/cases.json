@@ -1666,5 +1666,56 @@
       "rule_count": 1
     },
     "error": false
+  },
+  {
+    "name": "validate clean and required",
+    "request": {
+      "operation": "validate",
+      "schema": {
+        "age": "number",
+        "tier": "string"
+      },
+      "required": [
+        "age"
+      ],
+      "facts": [
+        {
+          "age": 30,
+          "tier": "gold"
+        },
+        {
+          "age": 20
+        },
+        {
+          "tier": "bronze"
+        }
+      ]
+    },
+    "expected": {
+      "records": 3,
+      "error_records": 1,
+      "results/0/ok": true,
+      "results/1/ok": true,
+      "results/2/ok": false
+    },
+    "error": false
+  },
+  {
+    "name": "validate type mismatch",
+    "request": {
+      "operation": "validate",
+      "schema": {
+        "age": "number"
+      },
+      "facts": {
+        "age": "old"
+      }
+    },
+    "expected": {
+      "error_count": 1,
+      "results/0/errors/0/path": "age",
+      "results/0/errors/0/found": "string"
+    },
+    "error": false
   }
 ]

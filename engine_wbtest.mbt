@@ -2735,3 +2735,101 @@ test "migrate rejects unknown current" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "validate accepts clean records" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"age\":\"number\",\"tier\":\"string\"},\"required\":[\"age\"],\"facts\":[{\"age\":30,\"tier\":\"gold\"},{\"age\":20}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["records"]), parse_value("2"))
+  assert_eq(test_at(result, ["error_records"]), parse_value("0"))
+  assert_eq(test_at(result, ["error_count"]), parse_value("0"))
+  assert_eq(test_at(result, ["results", "0", "ok"]), parse_value("true"))
+  assert_eq(test_at(result, ["results", "1", "ok"]), parse_value("true"))
+}
+
+///|
+test "validate reports type mismatches" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"age\":\"number\"},\"facts\":{\"age\":\"old\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["error_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["results", "0", "errors", "0", "path"]),
+    parse_value("\"age\""),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "errors", "0", "expected"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "errors", "0", "found"]),
+    parse_value("\"string\""),
+  )
+}
+
+///|
+test "validate enforces required paths" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"age\":\"number\"},\"required\":[\"age\"],\"facts\":[{}, {\"age\":1}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["error_records"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["results", "0", "errors", "0", "found"]),
+    parse_value("\"missing\""),
+  )
+  assert_eq(test_at(result, ["results", "1", "ok"]), parse_value("true"))
+}
+
+///|
+test "validate treats absent unrequired as optional" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"age\":\"number\",\"tag\":\"string\"},\"facts\":{\"age\":5}}",
+    ),
+  )
+  assert_eq(test_at(result, ["error_count"]), parse_value("0"))
+}
+
+///|
+test "validate checks nested dotted paths" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"user.age\":\"number\",\"tags\":\"array\"},\"facts\":{\"user\":{\"age\":30},\"tags\":[\"a\"]}}",
+    ),
+  )
+  assert_eq(test_at(result, ["error_count"]), parse_value("0"))
+  let bad = run(
+    parse_value(
+      "{\"operation\":\"validate\",\"schema\":{\"user.age\":\"number\"},\"facts\":{\"user\":{\"age\":\"x\"}}}",
+    ),
+  )
+  assert_eq(
+    test_at(bad, ["results", "0", "errors", "0", "path"]),
+    parse_value("\"user.age\""),
+  )
+}
+
+///|
+test "validate rejects unknown schema type" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"validate\",\"schema\":{\"age\":\"integer\"},\"facts\":{}}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
