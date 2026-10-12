@@ -162,6 +162,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "stats" {
     return stats_request(request)
   }
+  if operation == "plan_waves" {
+    return wave_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
