@@ -2624,3 +2624,114 @@ test "export schema rejects non-object schema" {
   }
   assert_true(failed)
 }
+
+
+fn sample_bundle_v2() -> Value raise {
+  parse_value(
+    "{\"versions\":[{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"base\",\"when\":\"true\",\"output\":\"v1\"}]},{\"version\":\"1.1.0\",\"rules\":[{\"id\":\"base\",\"when\":\"x > 1\",\"output\":\"v2\"},{\"id\":\"extra\",\"when\":\"y > 2\",\"output\":\"extra\"}]}]}",
+  )
+}
+
+///|
+test "migrate applies pending steps" {
+  let result = run(
+    record([
+      ("operation", String("migrate")),
+      ("current", String("1.0.0")),
+      ("versions", get(sample_bundle_v2(), "versions")),
+    ]),
+  )
+  assert_eq(test_at(result, ["version"]), parse_value("\"1.1.0\""))
+  assert_eq(test_at(result, ["applied_steps"]), parse_value("1"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["program", "0", "id"]),
+    parse_value("\"base\""),
+  )
+  assert_eq(
+    test_at(result, ["program", "0", "condition"]),
+    parse_value("\"x > 1\""),
+  )
+  assert_eq(
+    test_at(result, ["program", "0", "output"]),
+    parse_value("\"v2\""),
+  )
+}
+
+///|
+test "migrate up to date returns head program" {
+  let result = run(
+    record([
+      ("operation", String("migrate")),
+      ("current", String("1.1.0")),
+      ("versions", get(sample_bundle_v2(), "versions")),
+    ]),
+  )
+  assert_eq(test_at(result, ["applied_steps"]), parse_value("0"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["program", "1", "id"]),
+    parse_value("\"extra\""),
+  )
+}
+
+///|
+test "migrate program runs through run_program" {
+  let migrated = run(
+    record([
+      ("operation", String("migrate")),
+      ("current", String("1.0.0")),
+      ("versions", get(sample_bundle_v2(), "versions")),
+    ]),
+  )
+  let result = run(
+    record([
+      ("operation", String("run_program")),
+      ("program", test_at(migrated, ["program"])),
+      ("facts", parse_value("{\"x\":5,\"y\":9}")),
+    ]),
+  )
+  assert_eq(
+    test_at(result, ["results", "0", "result", "decision"]),
+    parse_value("\"v2\""),
+  )
+}
+
+///|
+test "migrate replaces same id across three versions" {
+  let versions = parse_value(
+    "{\"versions\":[{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":1}]},{\"version\":\"1.1.0\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":2}]},{\"version\":\"1.2.0\",\"rules\":[{\"id\":\"r\",\"when\":\"true\",\"output\":3}]}]}",
+  )
+  let result = run(
+    record([
+      ("operation", String("migrate")),
+      ("current", String("1.0.0")),
+      ("versions", get(versions, "versions")),
+    ]),
+  )
+  assert_eq(test_at(result, ["applied_steps"]), parse_value("2"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["program", "0", "output"]),
+    parse_value("3"),
+  )
+}
+
+///|
+test "migrate rejects unknown current" {
+  let failed = try {
+    ignore(
+      run(
+        record([
+          ("operation", String("migrate")),
+          ("current", String("9.9.9")),
+          ("versions", get(sample_bundle_v2(), "versions")),
+        ]),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
