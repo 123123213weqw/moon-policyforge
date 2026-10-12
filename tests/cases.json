@@ -1741,7 +1741,35 @@
       "pair_count": 3,
       "pairs/0/relation": "a_subsumes_b",
       "pairs/1/relation": "disjoint",
-      "summary/0/count": 1
+      "summary/0/count": 2,
+      "summary/2/count": 1
+    },
+    "error": false
+  },
+  {
+    "name": "stats summary",
+    "request": {
+      "operation": "stats",
+      "rules": [
+        {
+          "id": "a",
+          "priority": 2,
+          "when": "amount > 10 && tier == \"g\"",
+          "compute": "amount * 0.1"
+        },
+        {
+          "id": "b",
+          "when": "amount > 5"
+        }
+      ]
+    },
+    "expected": {
+      "rule_count": 2,
+      "compute_count": 1,
+      "min_priority": 0,
+      "max_priority": 2,
+      "paths/0/path": "amount",
+      "paths/0/rules": 2
     },
     "error": false
   }
