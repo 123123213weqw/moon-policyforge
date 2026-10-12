@@ -1176,3 +1176,50 @@ Expected result fields:
 ```
 
 `fmt` rewrites a rule set to canonical form: conditions and compute through the expression renderer (minimal parentheses, single spaces), priorities normalized to explicit numbers (default 0), stable key order. `changed_ids` lists drifted rules in character order, `changed_only: true` returns just those, and the formatted rules compile to identical trees — safe to round-trip through CI as a formatting gate.
+
+## migrate
+
+```json
+{
+  "operation": "migrate",
+  "current": "1.0.0",
+  "versions": [
+    { "version": "1.0.0", "rules": [ { "id": "base", "when": "true", "output": "v1" } ] },
+    { "version": "1.1.0", "rules": [ { "id": "base", "when": "x > 1", "output": "v2" }, { "id": "extra", "when": "y > 2", "output": "extra" } ] }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "version": "1.1.0",
+  "applied_steps": 1,
+  "rule_count": 2,
+  "program/0/output": "v2"
+}
+```
+
+`migrate` applies every pending bundle step from `current` to the head and returns the final executable program in bundle program form (`condition` field, run_program-ready): later versions replace same-ID rules from earlier ones, the merged program sorts by rule ID, up-to-date callers receive the head program with zero applied steps, and unknown current versions are rejected.
+
+## export_schema
+
+```json
+{
+  "operation": "export_schema",
+  "schema": { "user.age": "number", "active": "boolean" }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "draft": "2020-12",
+  "json_schema/properties/active/type": "boolean",
+  "json_schema/properties/user/properties/age/type": "number"
+}
+```
+
+`export_schema` turns an engine schema into a JSON Schema draft 2020-12 document: dotted paths become nested `properties` trees, engine type names map one-to-one (`null` to `{"type":"null"}`, `array`/`object` stay structural), and omitting `schema` falls back to inferring from `facts`.

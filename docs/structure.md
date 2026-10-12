@@ -21,6 +21,10 @@
 | `extract.mbt` | Fact projection (pick) with missing-path accounting. |
 | `ast.mbt` | Expression AST as JSON interchange. |
 | `decision_table.mbt` | Business table compilation and one-call deciding. |
+| `lint.mbt` | One-call governance gate composing analysis, types and bundle integrity. |
+| `fmt.mbt` | Canonical rule-set formatting with change flags. |
+| `schema_export.mbt` | JSON Schema draft 2020-12 export with inference fallback. |
+| `migrate.mbt` | Bundle migration application to a run_program-ready artifact. |
 | `cmd/main/` | The JS host: file/stdin/.jsonl input, exit-code protocol. |
 | `tests/cases.json` | The 77 CLI fixtures, mirrored as white-box tests. |
 | `engine_wbtest.mbt` | 137 white-box tests over the public `run` boundary. |

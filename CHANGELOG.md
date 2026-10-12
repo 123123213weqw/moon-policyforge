@@ -2,6 +2,15 @@
 
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
+## 0.5.0
+
+### Added
+
+- `lint`: one-call governance gate composing static analysis, schema type checking and bundle integrity; all sections always run, findings carry their source.
+- `fmt`: canonical rule-set formatting with per-ID change flags and `changed_only` selection; formatted rules compile to identical trees.
+- `export_schema`: JSON Schema draft 2020-12 documents from engine schemas, with inference fallback.
+- `migrate`: applies pending bundle steps into a run_program-ready final program with same-ID replacement and deterministic ordering.
+
 ## 0.4.0
 
 ### Added
