@@ -2833,3 +2833,120 @@ test "validate rejects unknown schema type" {
   }
   assert_true(failed)
 }
+
+
+fn conflict_pairs(expression_a : String, expression_b : String) -> Value raise {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"conflicts\",\"rules\":[{\"id\":\"A\",\"when\":\"" +
+      expression_a +
+      "\"},{\"id\":\"B\",\"when\":\"" +
+      expression_b +
+      "\"}]}",
+    ),
+  )
+  test_at(result, ["pairs"])
+}
+
+///|
+fn conflict_pair(expression_a : String, expression_b : String) -> Value raise {
+  let pairs = conflict_pairs(expression_a, expression_b)
+  match pairs {
+    Array(items) => {
+      assert_eq(items.length(), 1)
+      items[0]
+    }
+    _ => raise InputError("expected one pair")
+  }
+}
+
+///|
+test "conflicts detects disjoint ranges" {
+  let pair = conflict_pair("amount > 10", "amount < 5")
+  assert_eq(
+    test_at(pair, ["relation"]),
+    parse_value("\"disjoint\""),
+  )
+  // Touching bounds with matching strictness are not disjoint and not
+  // in subsumption, so no relation is emitted for the pair.
+  let empty = conflict_pairs("amount >= 10", "amount <= 10")
+  match empty {
+    Array(items) => assert_eq(items.length(), 0)
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "conflicts detects equality disjointness" {
+  let pair = conflict_pair("tier_level == 5", "tier_level == 7")
+  assert_eq(
+    test_at(pair, ["relation"]),
+    parse_value("\"disjoint\""),
+  )
+  let same = conflict_pair("tier_level == 5", "tier_level == 5")
+  assert_eq(
+    test_at(same, ["relation"]),
+    parse_value("\"equivalent\""),
+  )
+}
+
+///|
+test "conflicts detects subsumption direction" {
+  let pair = conflict_pair("amount > 5", "amount > 10")
+  assert_eq(
+    test_at(pair, ["relation"]),
+    parse_value("\"a_subsumes_b\""),
+  )
+  let reversed = conflict_pair("amount > 10", "amount > 5")
+  assert_eq(
+    test_at(reversed, ["relation"]),
+    parse_value("\"b_subsumes_a\""),
+  )
+}
+
+///|
+test "conflicts subsumption through bounds" {
+  // [6, 100) is contained in [6, inf): the looser B subsumes A.
+  let pair = conflict_pair("amount >= 6 && amount < 100", "amount >= 6")
+  assert_eq(
+    test_at(pair, ["relation"]),
+    parse_value("\"b_subsumes_a\""),
+  )
+  // Same atoms reordered are equivalent regardless of order.
+  let equivalent = conflict_pair(
+    "amount >= 6 && amount < 100",
+    "amount < 100 && amount >= 6",
+  )
+  assert_eq(
+    test_at(equivalent, ["relation"]),
+    parse_value("\"equivalent\""),
+  )
+}
+
+///|
+test "conflicts marks disjunctions unanalyzed" {
+  let pair = conflict_pair("amount > 5 || tier == 1", "amount > 10")
+  assert_eq(
+    test_at(pair, ["relation"]),
+    parse_value("\"unanalyzed\""),
+  )
+}
+
+///|
+test "conflicts summary counts relations" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"conflicts\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 5\"},{\"id\":\"b\",\"when\":\"x > 10\"},{\"id\":\"c\",\"when\":\"x < 0\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["pair_count"]), parse_value("3"))
+  match test_at(result, ["summary"]) {
+    Array(entries) => {
+      assert_eq(test_at(entries[0], ["relation"]), parse_value("\"disjoint\""))
+      assert_eq(test_at(entries[0], ["count"]), parse_value("2"))
+      assert_eq(test_at(entries[2], ["count"]), parse_value("1"))
+      assert_eq(test_at(entries[3], ["count"]), parse_value("0"))
+    }
+    _ => assert_true(false)
+  }
+}

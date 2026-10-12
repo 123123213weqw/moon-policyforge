@@ -1717,5 +1717,32 @@
       "results/0/errors/0/found": "string"
     },
     "error": false
+  },
+  {
+    "name": "conflicts disjoint and subsumption",
+    "request": {
+      "operation": "conflicts",
+      "rules": [
+        {
+          "id": "a",
+          "when": "amount > 5"
+        },
+        {
+          "id": "b",
+          "when": "amount > 10"
+        },
+        {
+          "id": "c",
+          "when": "amount < 0"
+        }
+      ]
+    },
+    "expected": {
+      "pair_count": 3,
+      "pairs/0/relation": "a_subsumes_b",
+      "pairs/1/relation": "disjoint",
+      "summary/0/count": 1
+    },
+    "error": false
   }
 ]

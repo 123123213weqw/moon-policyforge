@@ -198,16 +198,18 @@ fn conflicts_request(request : Value) -> Value raise {
         relations.push(Object(pair))
         continue
       }
-      let a_implies_b = atoms_imply(a.atoms, b.atoms)
+      // Standard subsumption naming: X subsumes Y when X is the more
+      // general condition (every Y match is also an X match).
+      let a_implies_b = atoms_imply(a.atoms, b.atoms) // a tighter: a matches => b matches
       let b_implies_a = atoms_imply(b.atoms, a.atoms)
       if a_implies_b && b_implies_a {
         pair["relation"] = String("equivalent")
         relations.push(Object(pair))
       } else if a_implies_b {
-        pair["relation"] = String("a_subsumes_b")
+        pair["relation"] = String("b_subsumes_a")
         relations.push(Object(pair))
       } else if b_implies_a {
-        pair["relation"] = String("b_subsumes_a")
+        pair["relation"] = String("a_subsumes_b")
         relations.push(Object(pair))
       }
     }
