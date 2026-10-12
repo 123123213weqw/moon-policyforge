@@ -159,6 +159,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "conflicts" {
     return conflicts_request(request)
   }
+  if operation == "stats" {
+    return stats_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
