@@ -157,6 +157,56 @@ check('ast interchange', () => {
   assert.equal(back.canonical, 'age >= 18');
 });
 
+check('lint governance', () => {
+  const result = engine({
+    operation: 'lint',
+    rules: [
+      {id: 'fallback', when: 'true', output: 'x'},
+      {id: 'a', when: 'x > 1', output: 1},
+      {id: 'b', when: 'x>1', output: 2},
+    ],
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.finding_count, 3);
+  assert.equal(engine({
+    operation: 'lint',
+    rules: [{id: 'adult', when: 'age >= 18', output: 'adult'}],
+    schema: {age: 'number'},
+  }).ok, true);
+});
+
+check('fmt formatting gate', () => {
+  const result = engine({
+    operation: 'fmt',
+    rules: [{id: 'a', when: 'age>=18', output: 1}, {id: 'b', when: 'x > 1'}],
+  });
+  assert.deepEqual(result.changed_ids, ['a']);
+  assert.equal(result.rules[0].when, 'age >= 18');
+  const only = engine({
+    operation: 'fmt', changed_only: true,
+    rules: [{id: 'a', when: 'age>=18'}, {id: 'b', when: 'x > 1'}],
+  });
+  assert.equal(only.rules.length, 1);
+});
+
+check('export_schema', () => {
+  const result = engine({operation: 'export_schema', schema: {'user.age': 'number', active: 'boolean'}});
+  assert.equal(result.draft, '2020-12');
+  assert.equal(result.paths, 2);
+});
+
+check('migrate application', () => {
+  const versions = [
+    {version: '1.0.0', rules: [{id: 'base', when: 'true', output: 'v1'}]},
+    {version: '1.1.0', rules: [{id: 'base', when: 'x > 1', output: 'v2'}]},
+  ];
+  const migrated = engine({operation: 'migrate', current: '1.0.0', versions});
+  assert.equal(migrated.applied_steps, 1);
+  assert.equal(migrated.program[0].output, 'v2');
+  const executed = engine({operation: 'run_program', program: migrated.program, facts: {x: 5}});
+  assert.equal(executed.results[0].result.decision, 'v2');
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');
