@@ -207,6 +207,42 @@ check('migrate application', () => {
   assert.equal(executed.results[0].result.decision, 'v2');
 });
 
+check('validate facts', () => {
+  const result = engine({
+    operation: 'validate',
+    schema: {age: 'number'},
+    required: ['age'],
+    facts: [{age: 30}, {}, {age: 'x'}],
+  });
+  assert.equal(result.error_records, 2);
+  assert.equal(result.results[0].ok, true);
+  assert.equal(result.results[1].errors[0].found, 'missing');
+  assert.equal(result.results[2].errors[0].found, 'string');
+});
+
+check('conflicts relations', () => {
+  const result = engine({
+    operation: 'conflicts',
+    rules: [
+      {id: 'a', when: 'amount > 5'},
+      {id: 'b', when: 'amount > 10'},
+      {id: 'c', when: 'amount < 0'},
+    ],
+  });
+  assert.equal(result.pairs[0].relation, 'a_subsumes_b');
+  assert.equal(result.pairs[1].relation, 'disjoint');
+});
+
+check('stats self-description', () => {
+  const result = engine({
+    operation: 'stats',
+    rules: [{id: 'a', priority: 2, when: 'amount > 10', compute: 'amount * 0.1'}],
+  });
+  assert.equal(result.compute_count, 1);
+  assert.equal(result.max_priority, 2);
+  assert.equal(result.paths[0].path, 'amount');
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');

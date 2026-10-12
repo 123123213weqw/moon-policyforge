@@ -85,6 +85,18 @@ Renders one record's decision as deterministic text. Same fields as `decide`, bu
 
 `{"expression"}` converts source to a JSON tree (`literal`, `variable`, `unary`, `binary`, `call` nodes) with its canonical rendering; `{"ast": tree}` compiles a tree back, rejecting unknown kinds, operators and functions with coded errors and re-compiling the canonical rendering for round-trip safety.
 
+## validate
+
+`{"schema", "required"?, "facts"}` checks fact records against the check operation's schema. Typed paths are type-checked when present; `required` paths must exist; absent unrequired paths are optional. Result: `{"results": [{"index", "ok", "errors": [{"path", "expected", "found"}]}], "records", "error_records", "error_count"}`. The batch never aborts.
+
+## conflicts
+
+`{"rules"}` classifies every rule pair over the conjunction-of-ranges fragment: `disjoint` (provably non-overlapping numeric ranges, strictness exact), `equivalent`, `a_subsumes_b` / `b_subsumes_a` (the looser condition subsumes the tighter one — every match of the tighter is a match of the looser), and `unanalyzed` for conditions outside the sound fragment (disjunctions, string comparisons, non-conjunct shapes). Result: `{"pairs", "pair_count", "summary"}`.
+
+## stats
+
+`{"rules"}` describes a rule set from compiled trees: `rule_count`, `compute_count` with `compute_rules` IDs, `min_priority`/`max_priority`, `condition_nodes`, `avg_nodes`, `max_depth`, the union of fact-path dependencies with per-path rule counts, and the builtin `functions` exercised. No facts are evaluated.
+
 ## diff
 
 `{"old": rules, "new": rules}` → `{"added", "removed", "changed"}`. Rule-ID set comparison by full-rule structural equality; ID lists are sorted.
