@@ -2540,3 +2540,87 @@ test "fmt rejects non-string compute" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "export schema builds nested document" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"export_schema\",\"schema\":{\"user.age\":\"number\",\"user.name\":\"string\",\"active\":\"boolean\"}}",
+    ),
+  )
+  assert_eq(test_at(result, ["paths"]), parse_value("3"))
+  assert_eq(test_at(result, ["draft"]), parse_value("\"2020-12\""))
+  assert_eq(
+    test_at(result, ["json_schema", "type"]),
+    parse_value("\"object\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "active", "type"]),
+    parse_value("\"boolean\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "user", "properties", "age", "type"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "user", "properties", "name", "type"]),
+    parse_value("\"string\""),
+  )
+}
+
+///|
+test "export schema maps null and structural types" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"export_schema\",\"schema\":{\"extra\":\"null\",\"tags\":\"array\",\"user\":\"object\"}}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "extra", "type"]),
+    parse_value("\"null\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "tags", "type"]),
+    parse_value("\"array\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "user", "type"]),
+    parse_value("\"object\""),
+  )
+}
+
+///|
+test "export schema infers when no schema given" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"export_schema\",\"facts\":[{\"user\":{\"age\":30},\"active\":true}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["paths"]), parse_value("3"))
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "user", "properties", "age", "type"]),
+    parse_value("\"number\""),
+  )
+  assert_eq(
+    test_at(result, ["json_schema", "properties", "active", "type"]),
+    parse_value("\"boolean\""),
+  )
+}
+
+///|
+test "export schema rejects non-object schema" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"export_schema\",\"schema\":[1]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

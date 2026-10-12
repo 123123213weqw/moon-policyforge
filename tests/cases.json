@@ -1556,5 +1556,40 @@
       "rules/0/id": "a"
     },
     "error": false
+  },
+  {
+    "name": "export schema",
+    "request": {
+      "operation": "export_schema",
+      "schema": {
+        "user.age": "number",
+        "active": "boolean"
+      }
+    },
+    "expected": {
+      "draft": "2020-12",
+      "paths": 2,
+      "json_schema/type": "object",
+      "json_schema/properties/active/type": "boolean",
+      "json_schema/properties/user/properties/age/type": "number"
+    },
+    "error": false
+  },
+  {
+    "name": "export schema infers",
+    "request": {
+      "operation": "export_schema",
+      "facts": [
+        {
+          "user": {
+            "age": 30
+          }
+        }
+      ]
+    },
+    "expected": {
+      "json_schema/properties/user/properties/age/type": "number"
+    },
+    "error": false
   }
 ]
