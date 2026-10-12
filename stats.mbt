@@ -9,6 +9,37 @@
 /// against facts; everything is derived from the compiled trees.
 
 ///|
+fn collect_calls(expr : Expression, names : Map[String, Bool]) -> Unit {
+  match expr {
+    Literal(_) | Variable(_) => ()
+    Unary(_, operand) => collect_calls(operand, names)
+    Binary(_, left, right) => {
+      collect_calls(left, names)
+      collect_calls(right, names)
+    }
+    Call(name, args) => {
+      names[name] = true
+      for arg in args {
+        collect_calls(arg, names)
+      }
+    }
+  }
+}
+
+///|
+fn note_rule_paths(
+  path_count : Map[String, Int],
+  paths : Map[String, Bool],
+) -> Unit {
+  for path, _ in paths {
+    match path_count.get(path) {
+      Some(n) => path_count[path] = n + 1
+      None => path_count[path] = 1
+    }
+  }
+}
+
+///|
 fn stats_request(request : Value) -> Value raise {
   let rules = arr(get(request, "rules"))
   let with_compute : Array[Value] = []
@@ -31,12 +62,8 @@ fn stats_request(request : Value) -> Value raise {
     }
     let paths : Map[String, Bool] = Map([])
     collect_paths(condition, paths)
-    for path, _ in paths {
-      match path_count.get(path) {
-        Some(n) => path_count[path] = n + 1
-        None => path_count[path] = 1
-      }
-    }
+    let calls : Map[String, Bool] = Map([])
+    collect_calls(condition, calls)
     match get(item, "compute") {
       Null => ()
       String(source) => {
@@ -48,17 +75,19 @@ fn stats_request(request : Value) -> Value raise {
         if cd > max_depth {
           max_depth = cd
         }
-        let cpaths : Map[String, Bool] = Map([])
-        collect_paths(compute, cpaths)
-        for path, _ in cpaths {
-          match path_count.get(path) {
-            Some(n) => path_count[path] = n + 1
-            None => path_count[path] = 1
-          }
-        }
+        collect_paths(compute, paths)
+        collect_calls(compute, calls)
         with_compute.push(String(str(get(item, "id"))))
       }
       _ => raise input_error("E4007", "compute must be a string")
+    }
+    // A path counts once per rule that uses it, wherever it appears.
+    note_rule_paths(path_count, paths)
+    for name, _ in calls {
+      match fn_count.get(name) {
+        Some(n) => fn_count[name] = n + 1
+        None => fn_count[name] = 1
+      }
     }
     let priority = optional_num(get(item, "priority"), 0.0)
     priorities.push(priority)

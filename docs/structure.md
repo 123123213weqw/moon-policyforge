@@ -25,6 +25,9 @@
 | `fmt.mbt` | Canonical rule-set formatting with change flags. |
 | `schema_export.mbt` | JSON Schema draft 2020-12 export with inference fallback. |
 | `migrate.mbt` | Bundle migration application to a run_program-ready artifact. |
+| `validate.mbt` | Fact validation against engine schemas with required paths. |
+| `conflicts.mbt` | Semantic condition relations: disjointness and subsumption. |
+| `stats.mbt` | Engine self-description from compiled trees. |
 | `cmd/main/` | The JS host: file/stdin/.jsonl input, exit-code protocol. |
 | `tests/cases.json` | The 77 CLI fixtures, mirrored as white-box tests. |
 | `engine_wbtest.mbt` | 137 white-box tests over the public `run` boundary. |

@@ -2,6 +2,15 @@
 
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
+## 0.6.0
+
+### Added
+
+- `validate`: fact records checked against engine schemas, with required-path enforcement, per-record error paths and batch-level summaries.
+- `conflicts`: sound semantic relation classification over the conjunction-of-ranges fragment — disjoint with exact strictness, equivalence, and subsumption in standard naming; conditions outside the fragment are marked unanalyzed.
+- `stats`: engine self-description from compiled trees (compute census, priority range, node/depth aggregates, per-path dependency counts, builtin function census).
+- Smoke pass extended to 28 checks; API reference and boundaries updated.
+
 ## 0.5.0
 
 ### Added

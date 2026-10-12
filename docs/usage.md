@@ -1249,3 +1249,73 @@ Expected result fields:
 ```
 
 `validate` checks fact records against the check operation's schema: typed paths are type-checked when present, `required` paths must exist (a missing required path reports `found: "missing"`), and absent unrequired paths are optional. Errors carry the path, expected and found types in character order; the batch never aborts, and `error_records` / `error_count` summarize.
+
+## validate
+
+```json
+{
+  "operation": "validate",
+  "schema": { "age": "number" },
+  "required": ["age"],
+  "facts": [{ "age": 30 }, { "tier": "bronze" }]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "error_records": 1,
+  "results/1/ok": false
+}
+```
+
+`validate` checks fact records against the check operation's schema: typed paths are type-checked when present, `required` paths must exist (`found: "missing"` otherwise), absent unrequired paths are optional. Errors carry path/expected/found per record; the batch never aborts.
+
+## conflicts
+
+```json
+{
+  "operation": "conflicts",
+  "rules": [
+    { "id": "a", "when": "amount > 5" },
+    { "id": "b", "when": "amount > 10" },
+    { "id": "c", "when": "amount < 0" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "pair_count": 3,
+  "pairs/0/relation": "a_subsumes_b",
+  "pairs/1/relation": "disjoint"
+}
+```
+
+`conflicts` classifies every rule pair over the conjunction-of-ranges fragment: `disjoint` (provably non-overlapping ranges, strictness exact), `equivalent`, `a_subsumes_b` / `b_subsumes_a` (the looser condition subsumes the tighter one), and `unanalyzed` for conditions outside the sound fragment (disjunctions, string comparisons). Conditions outside the fragment never produce unsound relations.
+
+## stats
+
+```json
+{
+  "operation": "stats",
+  "rules": [
+    { "id": "a", "priority": 2, "when": "amount > 10", "compute": "amount * 0.1" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "rule_count": 1,
+  "compute_count": 1,
+  "max_priority": 2
+}
+```
+
+`stats` describes a rule set from its compiled trees: compute counts and IDs, priority range, aggregated node/depth metrics, the union of fact-path dependencies with per-path rule counts, and the builtin functions exercised. No facts are evaluated.

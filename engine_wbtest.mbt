@@ -2950,3 +2950,78 @@ test "conflicts summary counts relations" {
     _ => assert_true(false)
   }
 }
+
+
+///|
+test "stats summarizes a ruleset" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"stats\",\"rules\":[{\"id\":\"a\",\"priority\":2,\"when\":\"amount > 10 && tier == \\\"g\\\"\",\"compute\":\"amount * 0.1\"},{\"id\":\"b\",\"when\":\"amount > 5\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["compute_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["compute_rules", "0"]),
+    parse_value("\"a\""),
+  )
+  assert_eq(test_at(result, ["min_priority"]), parse_value("0"))
+  assert_eq(test_at(result, ["max_priority"]), parse_value("2"))
+  assert_eq(test_at(result, ["max_depth"]), parse_value("3"))
+  match test_at(result, ["paths"]) {
+    Array(paths) => {
+      assert_eq(paths.length(), 2)
+      assert_eq(test_at(paths[0], ["path"]), parse_value("\"amount\""))
+      assert_eq(test_at(paths[0], ["rules"]), parse_value("2"))
+      assert_eq(test_at(paths[1], ["rules"]), parse_value("1"))
+    }
+    _ => assert_true(false)
+  }
+  match test_at(result, ["functions"]) {
+    Array(functions) => assert_eq(functions.length(), 0)
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "stats counts builtin functions" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"stats\",\"rules\":[{\"id\":\"a\",\"when\":\"exists(user.age) && len(tags) > 0 && upper(name) == \\\"X\\\"\",\"output\":1}]}",
+    ),
+  )
+  match test_at(result, ["functions"]) {
+    Array(functions) => {
+      assert_eq(functions.length(), 3)
+      assert_eq(functions[0], parse_value("\"exists\""))
+      assert_eq(functions[1], parse_value("\"len\""))
+      assert_eq(functions[2], parse_value("\"upper\""))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "stats empty ruleset" {
+  let result = run(parse_value("{\"operation\":\"stats\",\"rules\":[]}"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("0"))
+  assert_eq(test_at(result, ["avg_nodes"]), parse_value("0"))
+  assert_eq(test_at(result, ["paths"]), parse_value("[]"))
+}
+
+///|
+test "stats rejects non-string compute" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"stats\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"compute\":3}]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

@@ -2,16 +2,16 @@
 
 [![CI](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml/badge.svg)](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml)
 
-Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Twenty-one operations, four backends, 158 white-box tests, 86 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
+Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Twenty-four operations, four backends, 174 white-box tests, 90 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
-- Package: `123123213weqw/moon_policyforge@0.5.0`
+- Package: `123123213weqw/moon_policyforge@0.6.0`
 - License: Apache-2.0
-- Release scope: **0.5.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
+- Release scope: **0.6.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
 
 ## Implemented
 
-An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets (shared by decide and evaluate); rule priority; first/all/unique decisions; conflict flags with conflicting rule IDs; per-record errors; condition traces; rule-set diff with conflict attribution; an opt-in schema-based static checker; array quantifiers (count_matches, any_match, all_match); fact projection (pick); expression AST as JSON interchange; policy bundle manifests with migration resolution and application; one-call governance lint; canonical rule-set formatting; JSON Schema draft 2020-12 export; an optimizer with semantics-preserving rewrites; precompiled rule programs; coverage analysis; dependency graphs; an explain text renderer; a coded error taxonomy (E1xxx-E4xxx); JSONL streaming; canonical expression serialization with structural metrics and round-trip verification; group-wise aggregation; schema inference; static rule-set analysis (dependencies, tautologies, shadowing, ties); single-record text decision reports; a coded error taxonomy (E1xxx-E4xxx); JSONL streaming through the CLI; three complete scenario fixtures; a 100k-fact scale validation, a 500-expression differential fuzz oracle and recorded throughput benchmarks.
+An expression lexer and precedence parser; numeric/string/boolean literals; dotted fact paths; arithmetic and comparisons; strict boolean short circuit; exists/len/contains/lower/abs; finite arithmetic; evaluation budgets (shared by decide and evaluate); rule priority; first/all/unique decisions; conflict flags with conflicting rule IDs; per-record errors; condition traces; rule-set diff with conflict attribution; an opt-in schema-based static checker; array quantifiers (count_matches, any_match, all_match); fact projection (pick); expression AST as JSON interchange; policy bundle manifests with migration resolution and application; one-call governance lint; canonical rule-set formatting; JSON Schema draft 2020-12 export; fact validation with required paths; semantic condition conflict detection (disjointness and subsumption over range fragments); engine self-description via stats; an optimizer with semantics-preserving rewrites; precompiled rule programs; coverage analysis; dependency graphs; an explain text renderer; a coded error taxonomy (E1xxx-E4xxx); JSONL streaming; canonical expression serialization with structural metrics and round-trip verification; group-wise aggregation; schema inference; static rule-set analysis (dependencies, tautologies, shadowing, ties); single-record text decision reports; a coded error taxonomy (E1xxx-E4xxx); JSONL streaming through the CLI; three complete scenario fixtures; a 100k-fact scale validation, a 500-expression differential fuzz oracle and recorded throughput benchmarks.
 
 ## Build and run
 
@@ -29,7 +29,7 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 ## Library use
 
 ```sh
-moon add 123123213weqw/moon_policyforge@0.5.0
+moon add 123123213weqw/moon_policyforge@0.6.0
 ```
 
 In the consumer's `moon.pkg`:
@@ -81,7 +81,7 @@ node scripts/smoke.mjs
 node scripts/bench.mjs
 ```
 
-There are 86 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 90 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 
