@@ -33,6 +33,9 @@
 | `template.mbt` | Parameterized rule-set rendering. |
 | `score.mbt` | Condition complexity scoring with explicit reasons. |
 | `explain_rules.mbt` | Plain-language sentence explanations. |
+| `merge.mbt` | Rule-set merging with provenance and conflict strategies. |
+| `matrix.mbt` | Decision-mode comparison matrix. |
+| `audit.mbt` | Compliance-grade decision audit records. |
 | `cmd/main/` | The JS host: file/stdin/.jsonl input, exit-code protocol. |
 | `tests/cases.json` | The 77 CLI fixtures, mirrored as white-box tests. |
 | `engine_wbtest.mbt` | 137 white-box tests over the public `run` boundary. |

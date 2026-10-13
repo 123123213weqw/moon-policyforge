@@ -2,6 +2,15 @@
 
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
+## 0.8.0
+
+### Added
+
+- `merge`: rule-set combination by ID with canonical-signature equality and first/last/report conflict strategies; every merged rule carries its origin set.
+- `matrix`: all three decision modes side by side per record with agreement flags, the mode-selection review tool.
+- `audit`: compliance-grade decision records — facts echo, matched-rule evidence, conflict and step accounting under mode, deterministic rule-set digest and budget metadata.
+- Smoke pass extended to 36 checks.
+
 ## 0.7.0
 
 ### Added
