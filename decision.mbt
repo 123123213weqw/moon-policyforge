@@ -183,6 +183,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "merge" {
     return merge_request(request)
   }
+  if operation == "matrix" {
+    return matrix_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
