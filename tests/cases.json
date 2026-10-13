@@ -1926,5 +1926,87 @@
       "explanations/0/canonical": "age >= 18"
     },
     "error": false
+  },
+  {
+    "name": "merge with provenance",
+    "request": {
+      "operation": "merge",
+      "strategy": "last",
+      "sets": [
+        {
+          "name": "base",
+          "rules": [
+            {
+              "id": "adult",
+              "when": "age >= 18",
+              "output": "adult"
+            },
+            {
+              "id": "shared",
+              "when": "x > 1",
+              "output": 1
+            }
+          ]
+        },
+        {
+          "name": "overlay",
+          "rules": [
+            {
+              "id": "shared",
+              "when": "x > 1",
+              "output": 2
+            }
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "rule_count": 2,
+      "conflict_count": 1,
+      "conflicted_ids": [
+        "shared"
+      ],
+      "rules/0/origin": "base",
+      "rules/1/origin": "overlay",
+      "rules/1/rule/output": 2
+    },
+    "error": false
+  },
+  {
+    "name": "matrix mode comparison",
+    "request": {
+      "operation": "matrix",
+      "rules": [
+        {
+          "id": "a",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "senior",
+          "priority": 3,
+          "when": "age >= 65",
+          "output": "senior"
+        }
+      ],
+      "facts": [
+        {
+          "age": 70
+        },
+        {
+          "age": 30
+        }
+      ]
+    },
+    "expected": {
+      "agreements": 1,
+      "disagreements": 1,
+      "rows/0/agree": false,
+      "rows/0/first": "senior",
+      "rows/0/all_count": 2,
+      "rows/1/unique": "adult"
+    },
+    "error": false
   }
 ]

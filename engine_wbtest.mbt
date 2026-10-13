@@ -3560,3 +3560,63 @@ test "merge rejects unknown strategy and empty sets" {
   }
   assert_true(bad)
 }
+
+
+///|
+fn matrix_rules() -> Value raise {
+  parse_value(
+    "[{\"id\":\"a\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"senior\",\"priority\":3,\"when\":\"age >= 65\",\"output\":\"senior\"}]",
+  )
+}
+
+///|
+test "matrix flags multi-match records" {
+  let result = run(
+    record([
+      ("operation", String("matrix")),
+      ("rules", matrix_rules()),
+      ("facts", parse_value("[{\"age\":70},{\"age\":30}]")),
+    ]),
+  )
+  assert_eq(test_at(result, ["record_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["agreements"]), parse_value("1"))
+  assert_eq(test_at(result, ["disagreements"]), parse_value("1"))
+  assert_eq(test_at(result, ["rows", "0", "agree"]), parse_value("false"))
+  assert_eq(
+    test_at(result, ["rows", "0", "first"]),
+    parse_value("\"senior\""),
+  )
+  assert_eq(test_at(result, ["rows", "0", "unique"]), parse_value("null"))
+  assert_eq(test_at(result, ["rows", "0", "all_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["rows", "1", "agree"]), parse_value("true"))
+  assert_eq(
+    test_at(result, ["rows", "1", "unique"]),
+    parse_value("\"adult\""),
+  )
+}
+
+///|
+test "matrix all records agree without overlaps" {
+  let result = run(
+    record([
+      ("operation", String("matrix")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":1}]")),
+      ("facts", parse_value("[{\"x\":5},{\"x\":0}]")),
+    ]),
+  )
+  assert_eq(test_at(result, ["disagreements"]), parse_value("0"))
+  assert_eq(test_at(result, ["rows", "1", "first"]), parse_value("null"))
+}
+
+///|
+test "matrix single record form" {
+  let result = run(
+    record([
+      ("operation", String("matrix")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":\"hit\"}]")),
+      ("facts", parse_value("{\"x\":9}")),
+    ]),
+  )
+  assert_eq(test_at(result, ["record_count"]), parse_value("1"))
+  assert_eq(test_at(result, ["agreements"]), parse_value("1"))
+}
