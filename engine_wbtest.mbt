@@ -3449,3 +3449,114 @@ test "explain rules keeps canonical alongside" {
     parse_value("1"),
   )
 }
+
+
+fn merge_sets() -> Value raise {
+  parse_value(
+    "{\"sets\":[{\"name\":\"base\",\"rules\":[{\"id\":\"adult\",\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":1}]},{\"name\":\"overlay\",\"rules\":[{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":1},{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":2}]}]}",
+  )
+}
+
+///|
+test "merge collapses identical and keeps provenance" {
+  let request = merge_sets()
+  match request {
+    Object(fields) => fields["operation"] = String("merge")
+    _ => ()
+  }
+  let result = run(request)
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["conflicted_ids"]),
+    parse_value("[\"shared\"]"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "origin"]),
+    parse_value("\"base\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "id"]),
+    parse_value("\"adult\""),
+  )
+  assert_eq(test_at(result, ["strategy"]), parse_value("\"first\""))
+}
+
+///|
+test "merge first strategy keeps earliest on conflict" {
+  let request = merge_sets()
+  match request {
+    Object(fields) => fields["operation"] = String("merge")
+    _ => ()
+  }
+  let result = run(request)
+  assert_eq(
+    test_at(result, ["rules", "1", "rule", "output"]),
+    parse_value("1"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "origin"]),
+    parse_value("\"base\""),
+  )
+}
+
+///|
+test "merge last strategy takes latest on conflict" {
+  let request = merge_sets()
+  match request {
+    Object(fields) => {
+      fields["operation"] = String("merge")
+      fields["strategy"] = String("last")
+    }
+    _ => ()
+  }
+  let result = run(request)
+  assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["conflicted_ids"]),
+    parse_value("[\"shared\"]"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "rule", "output"]),
+    parse_value("2"),
+  )
+  assert_eq(
+    test_at(result, ["rules", "1", "origin"]),
+    parse_value("\"overlay\""),
+  )
+}
+
+///|
+test "merge report flags without replacing" {
+  let request = merge_sets()
+  match request {
+    Object(fields) => {
+      fields["operation"] = String("merge")
+      fields["strategy"] = String("report")
+    }
+    _ => ()
+  }
+  let result = run(request)
+  assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["rules", "1", "rule", "output"]),
+    parse_value("1"),
+  )
+}
+
+///|
+test "merge rejects unknown strategy and empty sets" {
+  let bad = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"merge\",\"strategy\":\"winner\",\"sets\":[]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(bad)
+}

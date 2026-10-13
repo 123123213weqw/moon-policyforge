@@ -1425,3 +1425,27 @@ Expected result fields:
 ```
 
 `explain_rules` renders each condition as an English sentence from the compiled tree — comparisons read naturally, conjunctions join with "and", builtins expand to intent — with the canonical form alongside.
+
+## merge
+
+```json
+{
+  "operation": "merge",
+  "strategy": "last",
+  "sets": [
+    { "name": "base", "rules": [ { "id": "shared", "when": "x > 1", "output": 1 } ] },
+    { "name": "overlay", "rules": [ { "id": "shared", "when": "x > 1", "output": 2 } ] }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "conflict_count": 1,
+  "rules/1/origin": "overlay"
+}
+```
+
+`merge` combines named rule sets by ID: identical rules (canonical signatures) collapse silently, differing ones follow the strategy — `first` keeps the earliest, `last` takes the latest, `report` flags without replacing. Every merged rule records its origin set; conflicted IDs are listed in character order.
