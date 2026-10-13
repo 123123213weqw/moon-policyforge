@@ -63,8 +63,25 @@ fn explain_rules_request(request : Value) -> Value raise {
     let id = str(get(item, "id"))
     let condition = compile(str(get(item, "when")))
     let sentence = phrase(condition)
-    let first = sentence.to_array()[0].to_string().to_upper()
-    let capitalized = first + sentence.substring(start=1).to_string()
+    // Capitalize the first alphabetic character (the sentence may
+    // start with punctuation such as a grouping parenthesis).
+    let chars = sentence.to_array()
+    let mut cut = 0
+    let mut upper_prefix = ""
+    while cut < chars.length() {
+      let piece = chars[cut].to_string()
+      let upper_piece = piece.to_upper()
+      if piece == upper_piece {
+        // not a lowercase letter: keep scanning
+        upper_prefix += piece
+        cut += 1
+      } else {
+        upper_prefix += upper_piece
+        cut += 1
+        break
+      }
+    }
+    let capitalized = upper_prefix + sentence.substring(start=cut).to_string()
     explanations.push(
       record([
         ("id", String(id)),
