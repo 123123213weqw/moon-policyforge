@@ -19,7 +19,11 @@ fn split_all(text : String, separator : String) -> Array[String] {
 }
 
 ///|
-fn expand_template(text : String, params : Map[String, Value]) -> (String, Array[String], Array[String]) {
+fn expand_template(
+  text : String,
+  params : Map[String, Value],
+  json_values : Bool,
+) -> (String, Array[String], Array[String]) {
   // Placeholder scanning via segment splits (no char-by-char walking):
   // text between "{{" and "}}" names a parameter; values render as JSON.
   let used : Map[String, Bool] = Map([])
@@ -38,14 +42,23 @@ fn expand_template(text : String, params : Map[String, Value]) -> (String, Array
     let tail = parts[1]
     let tail_parts = split_all(tail, "}}")
     if tail_parts.length() < 2 {
-      // unterminated placeholder: keep literally
+      // unterminated placeholder: keep literally along with the rest
       out += "{{" + tail
       break
     }
     let key = tail_parts[0].trim().to_string()
     match params.get(key) {
       Some(value) => {
-        out += Value::stringify(value)
+        // Expressions need JSON literals (strings quoted); plain text
+        // fields like IDs take the bare string form.
+        if json_values {
+          out += Value::stringify(value)
+        } else {
+          out += match value {
+            String(s) => s
+            other => Value::stringify(other)
+          }
+        }
         used[key] = true
       }
       None => {
@@ -53,7 +66,13 @@ fn expand_template(text : String, params : Map[String, Value]) -> (String, Array
         out += "{{" + key + "}}"
       }
     }
-    rest = tail_parts[1]
+    // Re-join any further "{{" occurrences split apart above so the
+    // next loop iteration sees them intact.
+    let mut remainder = tail_parts[1]
+    for k = 2; k < parts.length(); k = k + 1 {
+      remainder += "{{" + parts[k]
+    }
+    rest = remainder
   }
   let missing_set : Map[String, Bool] = Map([])
   for name in missing {
@@ -90,7 +109,7 @@ fn template_request(request : Value) -> Value raise {
   let mut index = 0
   for item in rules {
     let id = str(get(item, "id"))
-    let id_expanded = expand_template(id, params)
+    let id_expanded = expand_template(id, params, false)
     let expanded_id = id_expanded.0
     for name in id_expanded.1 {
       all_used[name] = true
@@ -99,7 +118,7 @@ fn template_request(request : Value) -> Value raise {
       all_missing[name] = true
     }
     let source = str(get(item, "when"))
-    let expanded = expand_template(source, params)
+    let expanded = expand_template(source, params, true)
     let expanded_when = expanded.0
     for name in expanded.1 {
       all_used[name] = true
@@ -121,7 +140,7 @@ fn template_request(request : Value) -> Value raise {
     match get(item, "compute") {
       Null => ()
       String(compute_source) => {
-        let expanded_compute = expand_template(compute_source, params)
+        let expanded_compute = expand_template(compute_source, params, true)
         rule["compute"] = String(expanded_compute.0)
         for name in expanded_compute.1 {
           all_used[name] = true
