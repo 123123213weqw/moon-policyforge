@@ -243,6 +243,29 @@ check('stats self-description', () => {
   assert.equal(result.paths[0].path, 'amount');
 });
 
+check('snapshot and compare regression', () => {
+  const rules = [{id: 'adult', priority: 2, when: 'age >= 18', output: 'adult'}];
+  const facts = [{age: 20}, {age: 10}];
+  const snap = engine({operation: 'snapshot', rules, facts});
+  assert.equal(snap.count, 2);
+  const same = engine({operation: 'compare', rules, facts, snapshots: snap.snapshots});
+  assert.equal(same.ok, true);
+  assert.equal(same.unchanged, 2);
+  const edited = [{id: 'adult', priority: 2, when: 'age >= 25', output: 'adult'}];
+  const diff = engine({operation: 'compare', rules: edited, facts, snapshots: snap.snapshots});
+  assert.equal(diff.ok, false);
+  assert.equal(diff.changed, 1);
+});
+
+check('plan_waves', () => {
+  const result = engine({
+    operation: 'plan_waves',
+    rules: [{id: 'a', when: 'amount > 1'}, {id: 'b', when: 'amount > 2'}, {id: 'c', when: 'color != null'}],
+  });
+  assert.equal(result.wave_count, 2);
+  assert.deepEqual(result.waves[0].rules, ['a', 'b']);
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');

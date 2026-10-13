@@ -1344,3 +1344,24 @@ Expected result fields:
 ```
 
 `plan_waves` turns the dependency graph into an evaluation schedule: each connected component is one wave carrying its member rules in character order and the shared paths that coupled them under `coupled_by`. Rules with disjoint dependencies land in separate singleton waves; a deployment that must run waves sequentially can execute them in the reported order with no cross-wave fact surprises.
+
+## snapshot / compare
+
+```json
+{
+  "operation": "snapshot",
+  "rules": [ { "id": "adult", "priority": 2, "when": "age >= 18", "output": "adult" } ],
+  "facts": [{ "age": 20 }, { "age": 10 }]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "count": 2,
+  "snapshots/0/index": 0
+}
+```
+
+`snapshot` fingerprints each record — decision, sorted matched IDs and conflict flag through canonical form into a self-implemented FNV-1a digest. `compare` re-decides against a stored snapshot and reports `added`, `removed` and `changed` records with before/after digests and `ok` true only when nothing moved. This is the regression gate for rule edits: capture before, compare after, review every diff.
