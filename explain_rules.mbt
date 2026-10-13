@@ -16,6 +16,7 @@ fn phrase(expr : Expression) -> String {
     Variable(path) => path
     Unary("!", operand) => "not (" + phrase(operand) + ")"
     Unary("-", operand) => "negative " + phrase(operand)
+    Unary(op, operand) => op + " applied to (" + phrase(operand) + ")"
     Binary(op, left, right) => {
       let left_text = phrase(left)
       let right_text = phrase(right)
