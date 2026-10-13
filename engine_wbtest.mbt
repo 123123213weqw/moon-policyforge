@@ -3396,3 +3396,55 @@ test "score rejects non-positive limits" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "explain rules phrases comparisons naturally" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"explain_rules\",\"rules\":[{\"id\":\"adult\",\"when\":\"age >= 18 && tier == \\\"gold\\\"\"}]}",
+    ),
+  )
+  match test_at(result, ["explanations", "0", "explanation"]) {
+    String(text) => {
+      assert_true(text.contains("Age must be at least 18"))
+      assert_true(text.contains("tier must equal"))
+      assert_true(text.contains(") and ("))
+      assert_true(text.ends_with("."))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "explain rules expands exists and disjunction" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"explain_rules\",\"rules\":[{\"id\":\"gate\",\"when\":\"exists(user.email) || verified == true\"}]}",
+    ),
+  )
+  match test_at(result, ["explanations", "0", "explanation"]) {
+    String(text) => {
+      assert_true(text.contains("user.email is present"))
+      assert_true(text.contains(") or ("))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "explain rules keeps canonical alongside" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"explain_rules\",\"rules\":[{\"id\":\"a\",\"when\":\"amount>=10\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["explanations", "0", "canonical"]),
+    parse_value("\"amount >= 10\""),
+  )
+  assert_eq(
+    test_at(result, ["rule_count"]),
+    parse_value("1"),
+  )
+}
