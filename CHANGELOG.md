@@ -2,6 +2,15 @@
 
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
+## 0.7.0
+
+### Added
+
+- `template`: parameterized rule sets with `{{name}}` placeholders — JSON literal expansion in expressions and compute, bare-text in IDs, with missing/unused parameter reporting.
+- `score`: condition complexity grades 0-100 from compiled-tree evidence against configurable soft limits, with ranks and explicit reasons.
+- `explain_rules`: plain-language sentences for every condition, derived from the compiled tree, with the canonical form alongside.
+- Smoke pass extended to 33 checks.
+
 ## 0.6.1
 
 ### Added

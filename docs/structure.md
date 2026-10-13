@@ -30,6 +30,9 @@
 | `stats.mbt` | Engine self-description from compiled trees. |
 | `waves.mbt` | Deployment wave scheduling from the dependency graph. |
 | `regression.mbt` | Decision regression snapshots and compare diffs. |
+| `template.mbt` | Parameterized rule-set rendering. |
+| `score.mbt` | Condition complexity scoring with explicit reasons. |
+| `explain_rules.mbt` | Plain-language sentence explanations. |
 | `cmd/main/` | The JS host: file/stdin/.jsonl input, exit-code protocol. |
 | `tests/cases.json` | The 77 CLI fixtures, mirrored as white-box tests. |
 | `engine_wbtest.mbt` | 137 white-box tests over the public `run` boundary. |

@@ -1908,5 +1908,23 @@
       "complex": 1
     },
     "error": false
+  },
+  {
+    "name": "explain rules sentence",
+    "request": {
+      "operation": "explain_rules",
+      "rules": [
+        {
+          "id": "adult",
+          "when": "age >= 18"
+        }
+      ]
+    },
+    "expected": {
+      "rule_count": 1,
+      "explanations/0/explanation": "Age must be at least 18.",
+      "explanations/0/canonical": "age >= 18"
+    },
+    "error": false
   }
 ]
