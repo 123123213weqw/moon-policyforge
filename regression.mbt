@@ -58,12 +58,15 @@ fn fingerprint_of(result : Value) -> String raise {
 ///|
 fn snapshot_request(request : Value) -> Value raise {
   let mode = optional_str(get(request, "mode"), "first")
-  let decided = decide(
-    load_rules(get(request, "rules")),
-    get(request, "facts"),
-    mode,
-    get(request, "default"),
-    optional_num(get(request, "budget"), 10000.0).to_int(),
+  let decided = run(
+    record([
+      ("operation", String("decide")),
+      ("rules", get(request, "rules")),
+      ("facts", get(request, "facts")),
+      ("mode", String(mode)),
+      ("default", get(request, "default")),
+      ("budget", get(request, "budget")),
+    ]),
   )
   match get(decided, "results") {
     Array(results) => {
