@@ -186,6 +186,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "matrix" {
     return matrix_request(request)
   }
+  if operation == "audit" {
+    return audit_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
