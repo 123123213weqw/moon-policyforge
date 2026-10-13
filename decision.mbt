@@ -171,6 +171,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "compare" {
     return compare_request(request)
   }
+  if operation == "template" {
+    return template_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
