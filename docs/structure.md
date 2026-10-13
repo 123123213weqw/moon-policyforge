@@ -28,6 +28,8 @@
 | `validate.mbt` | Fact validation against engine schemas with required paths. |
 | `conflicts.mbt` | Semantic condition relations: disjointness and subsumption. |
 | `stats.mbt` | Engine self-description from compiled trees. |
+| `waves.mbt` | Deployment wave scheduling from the dependency graph. |
+| `regression.mbt` | Decision regression snapshots and compare diffs. |
 | `cmd/main/` | The JS host: file/stdin/.jsonl input, exit-code protocol. |
 | `tests/cases.json` | The 77 CLI fixtures, mirrored as white-box tests. |
 | `engine_wbtest.mbt` | 137 white-box tests over the public `run` boundary. |

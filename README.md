@@ -2,12 +2,12 @@
 
 [![CI](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml/badge.svg)](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml)
 
-Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Twenty-four operations, four backends, 174 white-box tests, 90 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
+Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Twenty-six operations, four backends, 182 white-box tests, 92 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
-- Package: `123123213weqw/moon_policyforge@0.6.0`
+- Package: `123123213weqw/moon_policyforge@0.6.1`
 - License: Apache-2.0
-- Release scope: **0.6.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
+- Release scope: **0.6.1**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
 
 ## Implemented
 
@@ -29,7 +29,7 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 ## Library use
 
 ```sh
-moon add 123123213weqw/moon_policyforge@0.6.0
+moon add 123123213weqw/moon_policyforge@0.6.1
 ```
 
 In the consumer's `moon.pkg`:
@@ -81,7 +81,7 @@ node scripts/smoke.mjs
 node scripts/bench.mjs
 ```
 
-There are 90 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 92 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 

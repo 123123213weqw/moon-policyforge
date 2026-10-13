@@ -3090,3 +3090,111 @@ test "plan waves transitive components share one wave" {
     parse_value("[\"a\",\"b\",\"c\"]"),
   )
 }
+
+
+fn regression_rules() -> Value raise {
+  parse_value(
+    "[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}]",
+  )
+}
+
+///|
+test "snapshot and compare identical ruleset" {
+  let snap = run(
+    record([
+      ("operation", String("snapshot")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[{\"age\":20},{\"age\":10}]")),
+    ]),
+  )
+  let snapshots = test_at(snap, ["snapshots"])
+  assert_eq(test_at(snap, ["count"]), parse_value("2"))
+  let compared = run(
+    record([
+      ("operation", String("compare")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[{\"age\":20},{\"age\":10}]")),
+      ("snapshots", snapshots),
+    ]),
+  )
+  assert_eq(test_at(compared, ["ok"]), parse_value("true"))
+  assert_eq(test_at(compared, ["unchanged"]), parse_value("2"))
+  assert_eq(test_at(compared, ["changed"]), parse_value("0"))
+}
+
+///|
+test "compare detects decision change" {
+  let snap = run(
+    record([
+      ("operation", String("snapshot")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[{\"age\":20},{\"age\":10}]")),
+    ]),
+  )
+  let edited = parse_value(
+    "[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 21\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}]",
+  )
+  let compared = run(
+    record([
+      ("operation", String("compare")),
+      ("rules", edited),
+      ("facts", parse_value("[{\"age\":20},{\"age\":10}]")),
+      ("snapshots", test_at(snap, ["snapshots"])),
+    ]),
+  )
+  assert_eq(test_at(compared, ["ok"]), parse_value("false"))
+  assert_eq(test_at(compared, ["changed"]), parse_value("1"))
+  assert_eq(test_at(compared, ["unchanged"]), parse_value("1"))
+  assert_eq(
+    test_at(compared, ["diffs", "0", "kind"]),
+    parse_value("\"changed\""),
+  )
+  assert_eq(test_at(compared, ["diffs", "0", "index"]), parse_value("0"))
+}
+
+///|
+test "compare detects added and removed records" {
+  let snap = run(
+    record([
+      ("operation", String("snapshot")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[{\"age\":20}]")),
+    ]),
+  )
+  let snapshots = test_at(snap, ["snapshots"])
+  let grown = run(
+    record([
+      ("operation", String("compare")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[{\"age\":20},{\"age\":15}]")),
+      ("snapshots", snapshots),
+    ]),
+  )
+  assert_eq(test_at(grown, ["added"]), parse_value("1"))
+  let shrunk = run(
+    record([
+      ("operation", String("compare")),
+      ("rules", regression_rules()),
+      ("facts", parse_value("[]")),
+      ("snapshots", snapshots),
+    ]),
+  )
+  assert_eq(test_at(shrunk, ["removed"]), parse_value("1"))
+}
+
+///|
+test "compare rejects empty snapshot" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"compare\",\"rules\":[],\"facts\":[],\"snapshots\":[]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}

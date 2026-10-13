@@ -2,6 +2,17 @@
 
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
+## 0.6.1
+
+### Added
+
+- `snapshot` / `compare`: decision regression snapshots with FNV-1a fingerprints over decision, matched IDs and conflict flag; compare reports added, removed and changed records with before/after digests.
+- `plan_waves`: deployment wave scheduling from the dependency graph, with per-wave member rules and coupling paths.
+
+### Fixed
+
+- `snapshot` now routes through the batch decide path so array facts work as documented.
+
 ## 0.6.0
 
 ### Added

@@ -1805,5 +1805,37 @@
       ]
     },
     "error": false
+  },
+  {
+    "name": "snapshot fingerprints",
+    "request": {
+      "operation": "snapshot",
+      "rules": [
+        {
+          "id": "adult",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        },
+        {
+          "id": "fallback",
+          "when": "true",
+          "output": "other"
+        }
+      ],
+      "facts": [
+        {
+          "age": 20
+        },
+        {
+          "age": 10
+        }
+      ]
+    },
+    "expected": {
+      "count": 2,
+      "snapshots/0/index": 0
+    },
+    "error": false
   }
 ]
