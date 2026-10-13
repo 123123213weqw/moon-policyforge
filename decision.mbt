@@ -165,6 +165,12 @@ pub fn run(request : Value) -> Value raise {
   if operation == "plan_waves" {
     return wave_request(request)
   }
+  if operation == "snapshot" {
+    return snapshot_request(request)
+  }
+  if operation == "compare" {
+    return compare_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
