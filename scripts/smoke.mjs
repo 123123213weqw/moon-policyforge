@@ -266,6 +266,35 @@ check('plan_waves', () => {
   assert.deepEqual(result.waves[0].rules, ['a', 'b']);
 });
 
+check('template rendering', () => {
+  const result = engine({
+    operation: 'template',
+    rules: [{id: 'vip_{{tier}}', when: 'total >= {{min}}', compute: 'total * {{rate}}'}],
+    params: {tier: 'gold', min: 500, rate: 0.15},
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.rules[0].when, 'total >= 500');
+  assert.equal(result.rules[0].compute, 'total * 0.15');
+});
+
+check('score complexity', () => {
+  const result = engine({
+    operation: 'score',
+    rules: [{id: 'easy', when: 'age >= 18'}, {id: 'tangled', when: '(a && b) || (c && d) || (e && f) || (g && h) || (i && j) || (k && l)'}],
+  });
+  assert.equal(result.rules[0].rank, 'simple');
+  assert.equal(result.rules[1].rank, 'complex');
+  assert.ok(result.rules[1].reasons.length > 0);
+});
+
+check('explain_rules phrasing', () => {
+  const result = engine({
+    operation: 'explain_rules',
+    rules: [{id: 'adult', when: 'age >= 18'}],
+  });
+  assert.equal(result.explanations[0].explanation, 'Age must be at least 18.');
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');

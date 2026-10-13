@@ -1365,3 +1365,63 @@ Expected result fields:
 ```
 
 `snapshot` fingerprints each record — decision, sorted matched IDs and conflict flag through canonical form into a self-implemented FNV-1a digest. `compare` re-decides against a stored snapshot and reports `added`, `removed` and `changed` records with before/after digests and `ok` true only when nothing moved. This is the regression gate for rule edits: capture before, compare after, review every diff.
+
+## template
+
+```json
+{
+  "operation": "template",
+  "rules": [ { "id": "vip_{{tier}}", "when": "tier == {{tier}} && total >= {{min}}" } ],
+  "params": { "tier": "gold", "min": 500 }
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "ok": true,
+  "rules/0/when": "tier == \"gold\" && total >= 500"
+}
+```
+
+`template` renders `{{name}}` placeholders from `params` before compilation: expressions and compute take JSON literal forms (strings quoted), IDs take bare text. `missing_params` lists unresolved names (the template stays literal there), `unused_params` lists params the rules never reference, and `ok` is true only when substitution is complete.
+
+## score
+
+```json
+{
+  "operation": "score",
+  "rules": [ { "id": "easy", "when": "age >= 18" } ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "rules/0/rank": "simple",
+  "rules/0/score": 100
+}
+```
+
+`score` grades conditions 0-100 (higher is simpler) from compiled-tree evidence against configurable `soft_nodes`/`soft_depth` limits, fact-path breadth, boolean density and builtin usage; each rule carries its `rank` and the explicit `reasons` that lowered the score.
+
+## explain_rules
+
+```json
+{
+  "operation": "explain_rules",
+  "rules": [ { "id": "adult", "when": "age >= 18" } ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "explanations/0/explanation": "Age must be at least 18."
+}
+```
+
+`explain_rules` renders each condition as an English sentence from the compiled tree — comparisons read naturally, conjunctions join with "and", builtins expand to intent — with the canonical form alongside.
