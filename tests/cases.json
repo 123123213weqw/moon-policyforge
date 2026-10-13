@@ -1837,5 +1837,76 @@
       "snapshots/0/index": 0
     },
     "error": false
+  },
+  {
+    "name": "template render",
+    "request": {
+      "operation": "template",
+      "rules": [
+        {
+          "id": "vip_{{tier}}",
+          "priority": 2,
+          "when": "tier == {{tier}} && total >= {{min}}",
+          "compute": "total * {{rate}}"
+        }
+      ],
+      "params": {
+        "tier": "gold",
+        "min": 500,
+        "rate": 0.15
+      }
+    },
+    "expected": {
+      "ok": true,
+      "rules/0/when": "tier == \"gold\" && total >= 500",
+      "rules/0/compute": "total * 0.15",
+      "rules/0/id": "vip_gold"
+    },
+    "error": false
+  },
+  {
+    "name": "template missing params",
+    "request": {
+      "operation": "template",
+      "rules": [
+        {
+          "id": "a",
+          "when": "x > {{threshold}}"
+        }
+      ],
+      "params": {}
+    },
+    "expected": {
+      "ok": false,
+      "missing_params": [
+        "threshold"
+      ]
+    },
+    "error": false
+  },
+  {
+    "name": "score ranks conditions",
+    "request": {
+      "operation": "score",
+      "rules": [
+        {
+          "id": "easy",
+          "when": "age >= 18"
+        },
+        {
+          "id": "hard",
+          "when": "(a && b) || (c && d) || (e && f) || (g && h) || (i && j) || (k && l)"
+        }
+      ]
+    },
+    "expected": {
+      "rule_count": 2,
+      "rules/0/rank": "simple",
+      "rules/0/score": 100,
+      "simple": 1,
+      "rules/1/rank": "complex",
+      "complex": 1
+    },
+    "error": false
   }
 ]

@@ -3198,3 +3198,201 @@ test "compare rejects empty snapshot" {
   }
   assert_true(failed)
 }
+
+
+fn template_rules() -> String {
+  "[{\"id\":\"vip_{{tier}}\",\"priority\":2,\"when\":\"tier == {{tier}} && total >= {{min}}\",\"compute\":\"total * {{rate}}\"}]"
+}
+
+///|
+test "template renders quoted strings and numbers" {
+  let result = run(
+    record([
+      ("operation", String("template")),
+      ("rules", parse_value(template_rules())),
+      ("params", parse_value("{\"tier\":\"gold\",\"min\":500,\"rate\":0.15}")),
+    ]),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("true"))
+  assert_eq(
+    test_at(result, ["rules", "0", "when"]),
+    parse_value("\"tier == \\\"gold\\\" && total >= 500\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "compute"]),
+    parse_value("\"total * 0.15\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "id"]),
+    parse_value("\"vip_gold\""),
+  )
+  assert_eq(test_at(result, ["missing_params"]), parse_value("[]"))
+  assert_eq(test_at(result, ["unused_params"]), parse_value("[]"))
+}
+
+///|
+test "template renders before compilation so params become literals" {
+  let rendered = run(
+    record([
+      ("operation", String("template")),
+      ("rules", parse_value(template_rules())),
+      ("params", parse_value("{\"tier\":\"gold\",\"min\":500,\"rate\":0.15}")),
+    ]),
+  )
+  let decided = run(
+    record([
+      ("operation", String("decide")),
+      ("rules", test_at(rendered, ["rules"])),
+      ("facts", parse_value("{\"tier\":\"gold\",\"total\":600}")),
+    ]),
+  )
+  assert_eq(
+    test_at(decided, ["results", "0", "result", "decision"]),
+    parse_value("90"),
+  )
+}
+
+///|
+test "template reports missing params" {
+  let result = run(
+    record([
+      ("operation", String("template")),
+      ("rules", parse_value(template_rules())),
+      ("params", parse_value("{\"tier\":\"gold\"}")),
+    ]),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("false"))
+  match test_at(result, ["missing_params"]) {
+    Array(missing) => {
+      assert_eq(missing.length(), 2)
+      assert_eq(missing[0], parse_value("\"min\""))
+      assert_eq(missing[1], parse_value("\"rate\""))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "template reports unused params" {
+  let result = run(
+    record([
+      ("operation", String("template")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\"}]")),
+      ("params", parse_value("{\"never\":1,\"also\":2}")),
+    ]),
+  )
+  assert_eq(test_at(result, ["ok"]), parse_value("true"))
+  match test_at(result, ["unused_params"]) {
+    Array(unused) => {
+      assert_eq(unused.length(), 2)
+      assert_eq(unused[0], parse_value("\"also\""))
+      assert_eq(unused[1], parse_value("\"never\""))
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "template output is directly usable as rules" {
+  let rendered = run(
+    record([
+      ("operation", String("template")),
+      ("rules", parse_value(template_rules())),
+      ("params", parse_value("{\"tier\":\"gold\",\"min\":500,\"rate\":0.15}")),
+    ]),
+  )
+  let checked = run(
+    record([
+      ("operation", String("check")),
+      ("rules", test_at(rendered, ["rules"])),
+      ("schema", parse_value("{\"tier\":\"string\",\"total\":\"number\"}")),
+    ]),
+  )
+  assert_eq(test_at(checked, ["ok"]), parse_value("true"))
+}
+
+
+///|
+test "score simple condition ranks high" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"score\",\"rules\":[{\"id\":\"a\",\"when\":\"age >= 18\"}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "rank"]),
+    parse_value("\"simple\""),
+  )
+  assert_eq(
+    test_at(result, ["rules", "0", "score"]),
+    parse_value("100"),
+  )
+  assert_eq(test_at(result, ["simple"]), parse_value("1"))
+  assert_eq(test_at(result, ["average_score"]), parse_value("100"))
+}
+
+///|
+test "score penalizes depth and breadth" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"score\",\"rules\":[{\"id\":\"deep\",\"when\":\"!!!(a && (b || (c && d))) && e && f && g && h\"}]}",
+    ),
+  )
+  match test_at(result, ["rules", "0"]) {
+    Object(fields) => {
+      assert_eq(
+        fields.get("rank"),
+        Some(String("complex")),
+      )
+      assert_true(fields.contains("reasons"))
+    }
+    _ => assert_true(false)
+  }
+  assert_eq(test_at(result, ["complex"]), parse_value("1"))
+}
+
+///|
+test "score respects custom soft limits" {
+  let strict = run(
+    parse_value(
+      "{\"operation\":\"score\",\"soft_nodes\":2,\"rules\":[{\"id\":\"a\",\"when\":\"x > 1 && y < 2\"}]}",
+    ),
+  )
+  assert_eq(test_at(strict, ["rules", "0", "score"]), parse_value("90"))
+  assert_eq(
+    test_at(strict, ["rules", "0", "reasons", "0"]),
+    parse_value("\"wide: 7 nodes over limit 2\""),
+  )
+}
+
+///|
+test "score orders ranks across a mixed set" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"score\",\"rules\":[{\"id\":\"easy\",\"when\":\"true\"},{\"id\":\"hard\",\"when\":\"(a && b) || (c && d) || (e && f) || (g && h) || (i && j) || (k && l)\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["simple"]), parse_value("1"))
+  assert_eq(test_at(result, ["complex"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["rules", "1", "rank"]),
+    parse_value("\"complex\""),
+  )
+}
+
+///|
+test "score rejects non-positive limits" {
+  let failed = try {
+    ignore(
+      run(
+        parse_value(
+          "{\"operation\":\"score\",\"soft_nodes\":0,\"rules\":[]}",
+        ),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(failed)
+}
