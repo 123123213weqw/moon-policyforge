@@ -177,6 +177,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "score" {
     return score_request(request)
   }
+  if operation == "explain_rules" {
+    return explain_rules_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
