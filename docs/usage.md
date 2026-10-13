@@ -1319,3 +1319,28 @@ Expected result fields:
 ```
 
 `stats` describes a rule set from its compiled trees: compute counts and IDs, priority range, aggregated node/depth metrics, the union of fact-path dependencies with per-path rule counts, and the builtin functions exercised. No facts are evaluated.
+
+## plan_waves
+
+```json
+{
+  "operation": "plan_waves",
+  "rules": [
+    { "id": "a", "when": "amount < 100 && tier == \"g\"" },
+    { "id": "b", "when": "amount > 5" },
+    { "id": "c", "when": "color != null" }
+  ]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "wave_count": 2,
+  "waves/0/rules": ["a", "b"],
+  "waves/0/coupled_by/0": "amount"
+}
+```
+
+`plan_waves` turns the dependency graph into an evaluation schedule: each connected component is one wave carrying its member rules in character order and the shared paths that coupled them under `coupled_by`. Rules with disjoint dependencies land in separate singleton waves; a deployment that must run waves sequentially can execute them in the reported order with no cross-wave fact surprises.

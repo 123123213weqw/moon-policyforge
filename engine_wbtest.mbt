@@ -3025,3 +3025,68 @@ test "stats rejects non-string compute" {
   }
   assert_true(failed)
 }
+
+
+///|
+test "plan waves groups coupled rules" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"plan_waves\",\"rules\":[{\"id\":\"b\",\"when\":\"amount > 5\"},{\"id\":\"a\",\"when\":\"amount < 100 && tier == \\\"g\\\"\"},{\"id\":\"c\",\"when\":\"color != null\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["wave_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("3"))
+  match test_at(result, ["waves", "0", "rules"]) {
+    Array(rules) => {
+      assert_eq(rules.length(), 2)
+      assert_eq(rules[0], parse_value("\"a\""))
+      assert_eq(rules[1], parse_value("\"b\""))
+    }
+    _ => assert_true(false)
+  }
+  assert_eq(
+    test_at(result, ["waves", "0", "coupled_by", "0"]),
+    parse_value("\"amount\""),
+  )
+  assert_eq(
+    test_at(result, ["waves", "0", "wave"]),
+    parse_value("0"),
+  )
+  assert_eq(
+    test_at(result, ["waves", "1", "rules"]),
+    parse_value("[\"c\"]"),
+  )
+}
+
+///|
+test "plan waves single wave when all isolated" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"plan_waves\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"b\",\"when\":\"y > 1\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["wave_count"]), parse_value("2"))
+}
+
+///|
+test "plan waves empty ruleset" {
+  let result = run(
+    parse_value("{\"operation\":\"plan_waves\",\"rules\":[]}"),
+  )
+  assert_eq(test_at(result, ["wave_count"]), parse_value("0"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("0"))
+}
+
+///|
+test "plan waves transitive components share one wave" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"plan_waves\",\"rules\":[{\"id\":\"a\",\"when\":\"x > 1\"},{\"id\":\"b\",\"when\":\"x > 2 && y < 3\"},{\"id\":\"c\",\"when\":\"y > 4\"}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["wave_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["waves", "0", "rules"]),
+    parse_value("[\"a\",\"b\",\"c\"]"),
+  )
+}
