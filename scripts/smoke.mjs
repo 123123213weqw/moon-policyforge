@@ -295,6 +295,40 @@ check('explain_rules phrasing', () => {
   assert.equal(result.explanations[0].explanation, 'Age must be at least 18.');
 });
 
+check('merge provenance', () => {
+  const result = engine({
+    operation: 'merge', strategy: 'last',
+    sets: [
+      {name: 'base', rules: [{id: 'shared', when: 'x > 1', output: 1}]},
+      {name: 'overlay', rules: [{id: 'shared', when: 'x > 1', output: 2}]},
+    ],
+  });
+  assert.equal(result.conflict_count, 1);
+  assert.equal(result.rule_count, 1);
+  assert.equal(result.rules[0].origin, 'overlay');
+  assert.equal(result.rules[0].rule.output, 2);
+});
+
+check('matrix mode comparison', () => {
+  const result = engine({
+    operation: 'matrix',
+    rules: [{id: 'a', priority: 2, when: 'age >= 18', output: 'adult'}, {id: 'senior', priority: 3, when: 'age >= 65', output: 'senior'}],
+    facts: [{age: 70}, {age: 30}],
+  });
+  assert.equal(result.disagreements, 1);
+  assert.equal(result.rows[0].all_count, 2);
+});
+
+check('audit trail', () => {
+  const result = engine({
+    operation: 'audit',
+    rules: [{id: 'a', when: 'x > 1', output: 1}],
+    facts: [{x: 5}],
+  });
+  assert.ok(result.rule_digest.length > 0);
+  assert.equal(result.entries[0].matched[0].id, 'a');
+});
+
 check('compile_rules and run_program', () => {
   const compiled = engine({operation: 'compile_rules', rules: [{id: 'r', when: 'x>=5', output: 'hit'}]});
   assert.equal(compiled.program[0].condition, 'x >= 5');

@@ -2008,5 +2008,31 @@
       "rows/1/unique": "adult"
     },
     "error": false
+  },
+  {
+    "name": "audit trail",
+    "request": {
+      "operation": "audit",
+      "rules": [
+        {
+          "id": "a",
+          "priority": 2,
+          "when": "age >= 18",
+          "output": "adult"
+        }
+      ],
+      "facts": [
+        {
+          "age": 30
+        }
+      ]
+    },
+    "expected": {
+      "mode": "first",
+      "record_count": 1,
+      "entries/0/decision": "adult",
+      "entries/0/matched/0/id": "a"
+    },
+    "error": false
   }
 ]

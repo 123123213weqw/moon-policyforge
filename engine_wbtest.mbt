@@ -3620,3 +3620,81 @@ test "matrix single record form" {
   assert_eq(test_at(result, ["record_count"]), parse_value("1"))
   assert_eq(test_at(result, ["agreements"]), parse_value("1"))
 }
+
+
+///|
+test "audit preserves facts echo and evidence" {
+  let result = run(
+    record([
+      ("operation", String("audit")),
+      ("mode", String("first")),
+      ("rules", parse_value("[{\"id\":\"a\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"}]")),
+      ("facts", parse_value("[{\"age\":30},{\"age\":9}]")),
+    ]),
+  )
+  assert_eq(test_at(result, ["mode"]), parse_value("\"first\""))
+  assert_eq(test_at(result, ["record_count"]), parse_value("2"))
+  assert_eq(
+    test_at(result, ["entries", "0", "facts", "age"]),
+    parse_value("30"),
+  )
+  assert_eq(
+    test_at(result, ["entries", "0", "decision"]),
+    parse_value("\"adult\""),
+  )
+  assert_eq(
+    test_at(result, ["entries", "0", "matched", "0", "id"]),
+    parse_value("\"a\""),
+  )
+  assert_eq(
+    test_at(result, ["entries", "1", "decision"]),
+    parse_value("null"),
+  )
+}
+
+///|
+test "audit digest changes with rules" {
+  let first = run(
+    record([
+      ("operation", String("audit")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":1}]")),
+      ("facts", parse_value("{\"x\":5}")),
+    ]),
+  )
+  let second = run(
+    record([
+      ("operation", String("audit")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 2\",\"output\":1}]")),
+      ("facts", parse_value("{\"x\":5}")),
+    ]),
+  )
+  match (test_at(first, ["rule_digest"]), test_at(second, ["rule_digest"])) {
+    (String(a), String(b)) => assert_true(a != b)
+    _ => assert_true(false)
+  }
+  let again = run(
+    record([
+      ("operation", String("audit")),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":1}]")),
+      ("facts", parse_value("{\"x\":5}")),
+    ]),
+  )
+  assert_eq(
+    test_at(first, ["rule_digest"]),
+    test_at(again, ["rule_digest"]),
+  )
+}
+
+///|
+test "audit carries budget and rule count" {
+  let result = run(
+    record([
+      ("operation", String("audit")),
+      ("budget", Number(5000.0)),
+      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"true\",\"output\":1},{\"id\":\"b\",\"when\":\"false\",\"output\":2}]")),
+      ("facts", parse_value("{}")),
+    ]),
+  )
+  assert_eq(test_at(result, ["budget"]), parse_value("5000"))
+  assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
+}

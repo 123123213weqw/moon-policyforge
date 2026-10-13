@@ -1449,3 +1449,50 @@ Expected result fields:
 ```
 
 `merge` combines named rule sets by ID: identical rules (canonical signatures) collapse silently, differing ones follow the strategy — `first` keeps the earliest, `last` takes the latest, `report` flags without replacing. Every merged rule records its origin set; conflicted IDs are listed in character order.
+
+## matrix
+
+```json
+{
+  "operation": "matrix",
+  "rules": [
+    { "id": "a", "priority": 2, "when": "age >= 18", "output": "adult" },
+    { "id": "senior", "priority": 3, "when": "age >= 65", "output": "senior" }
+  ],
+  "facts": [{ "age": 70 }, { "age": 30 }]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "rows/0/agree": false,
+  "rows/0/all_count": 2,
+  "disagreements": 1
+}
+```
+
+`matrix` decides every record under all three modes and reports per-record `first`/`unique` decisions, the matched count, and agreement (at most one match). Use it to choose a mode: every disagreement row is a record whose mode choice matters.
+
+## audit
+
+```json
+{
+  "operation": "audit",
+  "rules": [ { "id": "a", "priority": 2, "when": "age >= 18", "output": "adult" } ],
+  "facts": [{ "age": 30 }]
+}
+```
+
+Expected result fields:
+
+```json
+{
+  "mode": "first",
+  "entries/0/decision": "adult",
+  "entries/0/matched/0/id": "a"
+}
+```
+
+`audit` preserves the compliance trail: per record the facts echo, decision, matched-rule evidence, conflict flag and step accounting, under engine metadata — mode, deterministic `rule_digest` over the canonical rule set, rule count and budget. Audit records may contain fact values; redact before storing sensitive batches.
