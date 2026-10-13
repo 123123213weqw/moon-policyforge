@@ -3425,8 +3425,9 @@ test "explain rules expands exists and disjunction" {
   )
   match test_at(result, ["explanations", "0", "explanation"]) {
     String(text) => {
-      assert_true(text.contains("user.email is present"))
+      assert_true(text.contains("email is present"))
       assert_true(text.contains(") or ("))
+      assert_true(text.contains("verified must equal true"))
     }
     _ => assert_true(false)
   }
