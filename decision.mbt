@@ -180,6 +180,9 @@ pub fn run(request : Value) -> Value raise {
   if operation == "explain_rules" {
     return explain_rules_request(request)
   }
+  if operation == "merge" {
+    return merge_request(request)
+  }
   if operation == "check" {
     return check_request(request)
   }
