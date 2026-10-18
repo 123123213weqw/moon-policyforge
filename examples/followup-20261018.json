@@ -1,0 +1,37 @@
+{
+  "operation": "replay_versions",
+  "old": {
+    "rules": [
+      {
+        "id": "pass",
+        "when": "score >= 50",
+        "output": "pass"
+      }
+    ],
+    "default": "review"
+  },
+  "new": {
+    "rules": [
+      {
+        "id": "pass",
+        "when": "score >= 60",
+        "output": "pass"
+      }
+    ],
+    "default": "review"
+  },
+  "cases": [
+    {
+      "id": "edge",
+      "facts": {
+        "score": 55
+      }
+    },
+    {
+      "id": "stable",
+      "facts": {
+        "score": 70
+      }
+    }
+  ]
+}

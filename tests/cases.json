@@ -2093,5 +2093,174 @@
       "entries/0/matched/0/id": "a"
     },
     "error": false
+  },
+  {
+    "name": "followup named decision version replay",
+    "request": {
+      "operation": "replay_versions",
+      "old": {
+        "rules": [
+          {
+            "id": "pass",
+            "when": "score >= 50",
+            "output": "pass"
+          }
+        ],
+        "default": "review"
+      },
+      "new": {
+        "rules": [
+          {
+            "id": "pass",
+            "when": "score >= 60",
+            "output": "pass"
+          }
+        ],
+        "default": "review"
+      },
+      "cases": [
+        {
+          "id": "edge",
+          "facts": {
+            "score": 55
+          }
+        },
+        {
+          "id": "stable",
+          "facts": {
+            "score": 70
+          }
+        }
+      ]
+    },
+    "expected": {
+      "sample_count": 2,
+      "changed_count": 1,
+      "cases/0/decision_changed": true,
+      "cases/1/decision_changed": false,
+      "global_equivalence_proven": false
+    },
+    "error": false
+  },
+  {
+    "name": "followup conflict version replay",
+    "request": {
+      "operation": "replay_versions",
+      "old": {
+        "rules": [
+          {
+            "id": "a",
+            "when": "true",
+            "output": 1
+          }
+        ],
+        "mode": "unique"
+      },
+      "new": {
+        "rules": [
+          {
+            "id": "a",
+            "when": "true",
+            "output": 1
+          },
+          {
+            "id": "b",
+            "when": "true",
+            "output": 1
+          }
+        ],
+        "mode": "unique"
+      },
+      "cases": [
+        {
+          "id": "one",
+          "facts": {}
+        }
+      ]
+    },
+    "expected": {
+      "cases/0/conflict_changed": true,
+      "cases/0/matched_changed": true
+    },
+    "error": false
+  },
+  {
+    "name": "followup error version replay",
+    "request": {
+      "operation": "replay_versions",
+      "old": {
+        "rules": [
+          {
+            "id": "a",
+            "when": "x > 0",
+            "output": 1
+          }
+        ]
+      },
+      "new": {
+        "rules": [
+          {
+            "id": "a",
+            "when": "y > 0",
+            "output": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "one",
+          "facts": {}
+        }
+      ]
+    },
+    "expected": {
+      "cases/0/error_changed": true
+    },
+    "error": false
+  },
+  {
+    "name": "followup fractional execution budget",
+    "request": {
+      "operation": "evaluate",
+      "expression": "1",
+      "facts": {},
+      "budget": 1.5
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "followup table column injection",
+    "request": {
+      "operation": "decision_table",
+      "table": {
+        "columns": [
+          "age > 0 || true"
+        ],
+        "rows": [
+          {
+            "age > 0 || true": 1,
+            "outcome": "yes"
+          }
+        ]
+      }
+    },
+    "expected": {},
+    "error": true
+  },
+  {
+    "name": "followup empty rule identity",
+    "request": {
+      "rules": [
+        {
+          "id": "",
+          "when": "true",
+          "output": 1
+        }
+      ],
+      "facts": {}
+    },
+    "expected": {},
+    "error": true
   }
 ]

@@ -1230,3 +1230,83 @@ test "audit trail" {
     parse_value("\"a\""),
   )
 }
+
+///|
+test "followup named decision version replay" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"replay_versions\",\"old\":{\"rules\":[{\"id\":\"pass\",\"when\":\"score >= 50\",\"output\":\"pass\"}],\"default\":\"review\"},\"new\":{\"rules\":[{\"id\":\"pass\",\"when\":\"score >= 60\",\"output\":\"pass\"}],\"default\":\"review\"},\"cases\":[{\"id\":\"edge\",\"facts\":{\"score\":55}},{\"id\":\"stable\",\"facts\":{\"score\":70}}]}",
+    ),
+  )
+  assert_eq(test_at(result, ["sample_count"]), parse_value("2"))
+  assert_eq(test_at(result, ["changed_count"]), parse_value("1"))
+  assert_eq(
+    test_at(result, ["cases", "0", "decision_changed"]),
+    parse_value("true"),
+  )
+  assert_eq(
+    test_at(result, ["cases", "1", "decision_changed"]),
+    parse_value("false"),
+  )
+  assert_eq(
+    test_at(result, ["global_equivalence_proven"]),
+    parse_value("false"),
+  )
+}
+
+///|
+test "followup conflict version replay" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"replay_versions\",\"old\":{\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":1}],\"mode\":\"unique\"},\"new\":{\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":1},{\"id\":\"b\",\"when\":\"true\",\"output\":1}],\"mode\":\"unique\"},\"cases\":[{\"id\":\"one\",\"facts\":{}}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["cases", "0", "conflict_changed"]),
+    parse_value("true"),
+  )
+  assert_eq(
+    test_at(result, ["cases", "0", "matched_changed"]),
+    parse_value("true"),
+  )
+}
+
+///|
+test "followup error version replay" {
+  let result = run(
+    parse_value(
+      "{\"operation\":\"replay_versions\",\"old\":{\"rules\":[{\"id\":\"a\",\"when\":\"x > 0\",\"output\":1}]},\"new\":{\"rules\":[{\"id\":\"a\",\"when\":\"y > 0\",\"output\":1}]},\"cases\":[{\"id\":\"one\",\"facts\":{}}]}",
+    ),
+  )
+  assert_eq(
+    test_at(result, ["cases", "0", "error_changed"]),
+    parse_value("true"),
+  )
+}
+
+///|
+test "followup fractional execution budget" {
+  assert_true(
+    fails(
+      "{\"operation\":\"evaluate\",\"expression\":\"1\",\"facts\":{},\"budget\":1.5}",
+    ),
+  )
+}
+
+///|
+test "followup table column injection" {
+  assert_true(
+    fails(
+      "{\"operation\":\"decision_table\",\"table\":{\"columns\":[\"age > 0 || true\"],\"rows\":[{\"age > 0 || true\":1,\"outcome\":\"yes\"}]}}",
+    ),
+  )
+}
+
+///|
+test "followup empty rule identity" {
+  assert_true(
+    fails(
+      "{\"rules\":[{\"id\":\"\",\"when\":\"true\",\"output\":1}],\"facts\":{}}",
+    ),
+  )
+}
