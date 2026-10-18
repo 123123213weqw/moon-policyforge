@@ -10,7 +10,7 @@ pub(all) enum Expression {
 ///|
 struct Parser {
   tokens : Array[String]
-  mut position : Int
+  mut position : Int32
 }
 
 ///|
@@ -108,7 +108,7 @@ fn Parser::take(self : Parser) -> String raise InputError {
 }
 
 ///|
-fn precedence(op : String) -> Int {
+fn precedence(op : String) -> Int32 {
   match op {
     "||" => 1
     "&&" => 2
@@ -123,8 +123,8 @@ fn precedence(op : String) -> Int {
 ///|
 fn Parser::expression(
   self : Parser,
-  minimum : Int,
-  depth : Int,
+  minimum : Int32,
+  depth : Int32,
 ) -> Expression raise {
   if depth > 128 {
     raise input_error("E1007", "expression nesting limit")
@@ -163,7 +163,11 @@ fn Parser::expression(
       if self.take() != ")" {
         raise input_error("E1005", "expected closing parenthesis")
       }
-      if !["exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with", "replace", "substring", "abs", "floor", "ceil", "round", "min", "max", "sum", "concat", "count_matches", "any_match", "all_match"].contains(token) {
+      if ![
+          "exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with",
+          "replace", "substring", "abs", "floor", "ceil", "round", "min", "max",
+          "sum", "concat", "count_matches", "any_match", "all_match",
+        ].contains(token) {
         raise input_error("E1008", "unknown function: " + token)
       }
       Call(token, args)
@@ -206,7 +210,7 @@ fn lookup(facts : Value, path : String) -> Value? {
 
 ///|
 struct Evaluation {
-  mut fuel : Int
+  mut fuel : Int32
   trace : Array[Value]
 }
 
@@ -219,7 +223,7 @@ fn boolean(value : Value) -> Bool raise InputError {
 }
 
 ///|
-fn order(a : Value, b : Value) -> Int raise InputError {
+fn order(a : Value, b : Value) -> Int32 raise InputError {
   match (a, b) {
     (Number(x), Number(y)) => x.compare(y)
     (String(x), String(y)) => x.compare(y)
@@ -295,10 +299,11 @@ fn evaluate(
         ("lower", [String(s)]) => String(s.to_lower())
         ("upper", [String(s)]) => String(s.to_upper())
         ("trim", [String(s)]) => String(s.trim().to_string())
-        ("starts_with", [String(s), String(prefix)]) => Bool(s.has_prefix(prefix))
+        ("starts_with", [String(s), String(prefix)]) =>
+          Bool(s.has_prefix(prefix))
         ("ends_with", [String(s), String(suffix)]) => Bool(s.has_suffix(suffix))
         ("replace", [String(s), String(old), String(new)]) =>
-          String(s.replace(old=old, new=new))
+          String(s.replace(old~, new~))
         ("substring", [String(s), Number(a), Number(b)]) => {
           let len = s.char_length()
           let start = a.to_int()
@@ -306,7 +311,7 @@ fn evaluate(
           if start < 0 || end > len || start > end {
             raise input_error("E2008", "substring out of bounds")
           }
-          String(s.substring(start=start, end=end).to_string())
+          String(s.substring(start~, end~).to_string())
         }
         ("abs", [Number(n)]) => Number(n.abs())
         ("floor", [Number(n)]) => Number(n.floor())
@@ -347,7 +352,7 @@ fn evaluate(
 pub fn evaluate_expression(
   source : String,
   facts : Value,
-  budget? : Int = 10000,
+  budget~ : Int32 = 10000,
 ) -> Value raise {
   evaluate(compile(source), facts, { fuel: budget, trace: [], })
 }

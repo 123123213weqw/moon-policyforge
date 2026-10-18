@@ -69,7 +69,10 @@ fn validate_request(request : Value) -> Value raise {
       for key, value in fields {
         let kind = str(value)
         if !known_types.contains(kind) {
-          raise input_error("E3008", "unknown schema type for " + key + ": " + kind)
+          raise input_error(
+            "E3008",
+            "unknown schema type for " + key + ": " + kind,
+          )
         }
         schema[key] = kind
       }

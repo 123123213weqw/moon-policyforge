@@ -28,7 +28,7 @@ fn collect_calls(expr : Expression, names : Map[String, Bool]) -> Unit {
 
 ///|
 fn note_rule_paths(
-  path_count : Map[String, Int],
+  path_count : Map[String, Int32],
   paths : Map[String, Bool],
 ) -> Unit {
   for path, _ in paths {
@@ -47,8 +47,8 @@ fn stats_request(request : Value) -> Value raise {
   let mut total_nodes = 0
   let mut total_depth = 0
   let mut max_depth = 0
-  let path_count : Map[String, Int] = Map([])
-  let fn_count : Map[String, Int] = Map([])
+  let path_count : Map[String, Int32] = Map([])
+  let fn_count : Map[String, Int32] = Map([])
   let mut conditions = 0
   let mut computes = 0
   for item in rules {
@@ -113,10 +113,12 @@ fn stats_request(request : Value) -> Value raise {
         ("path", String(path)),
         (
           "rules",
-          Number((match path_count.get(path) {
-            Some(n) => n
-            None => 0
-          }).to_double()),
+          Number(
+            (match path_count.get(path) {
+              Some(n) => n
+              None => 0
+            }).to_double(),
+          ),
         ),
       ]),
     )

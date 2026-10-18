@@ -90,14 +90,16 @@ fn wave_request(request : Value) -> Value raise {
       }
     }
     names.sort_by(fn(a, b) { stable_string_compare(a, b) })
-    let shared_paths = strings({
-      let list : Array[String] = []
-      for path, _ in paths {
-        list.push(path)
-      }
-      list.sort_by(fn(a, b) { stable_string_compare(a, b) })
-      list
-    })
+    let shared_paths = strings(
+      {
+        let list : Array[String] = []
+        for path, _ in paths {
+          list.push(path)
+        }
+        list.sort_by(fn(a, b) { stable_string_compare(a, b) })
+        list
+      },
+    )
     waves.push(
       record([
         ("wave", Number(index.to_double())),

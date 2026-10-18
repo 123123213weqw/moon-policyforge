@@ -46,7 +46,7 @@ fn decide(
   facts : Value,
   mode : String,
   fallback : Value,
-  budget : Int,
+  budget : Int32,
 ) -> Value raise {
   ignore(obj(facts))
   let matched : Array[Value] = []
@@ -229,7 +229,7 @@ pub fn run(request : Value) -> Value raise {
           evaluate_expression(
             str(get(request, "expression")),
             get(request, "facts"),
-            budget=budget,
+            budget~,
           )
         },
       ),
@@ -258,9 +258,9 @@ pub fn run(request : Value) -> Value raise {
         removed.push(id)
       }
     }
-    added.sort()
-    removed.sort()
-    changed.sort()
+    added.sort_by(stable_string_compare)
+    removed.sort_by(stable_string_compare)
+    changed.sort_by(stable_string_compare)
     return record([
       ("added", strings(added)),
       ("removed", strings(removed)),

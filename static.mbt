@@ -43,13 +43,7 @@ fn CheckState::require(
   if actual == "unknown" || actual == expected {
     true
   } else {
-    self.fail(
-      context +
-      " expects " +
-      expected +
-      " but inferred " +
-      actual,
-    )
+    self.fail(context + " expects " + expected + " but inferred " + actual)
     false
   }
 }
@@ -90,7 +84,7 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           "boolean"
         }
         "==" | "!=" => "boolean"
-        ">" | "<" | ">=" | "<=" => {
+        ">" | "<" | ">=" | "<=" =>
           if lt == "unknown" || rt == "unknown" {
             "boolean"
           } else if lt == rt && (lt == "number" || lt == "string") {
@@ -104,12 +98,11 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
             )
             "unknown"
           }
-        }
         "in" => {
           ignore(self.require(rt, "array", "right operand of in"))
           "boolean"
         }
-        "+" => {
+        "+" =>
           if lt == "string" {
             if self.require(rt, "string", "string concatenation") {
               "string"
@@ -128,7 +121,6 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
             self.fail("operator + expects number or string but inferred " + lt)
             "unknown"
           }
-        }
         "-" | "*" | "/" => {
           ignore(self.require(lt, "number", "arithmetic " + op))
           ignore(self.require(rt, "number", "arithmetic " + op))
@@ -158,7 +150,9 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
             kind == "object" {
             "number"
           } else {
-            self.fail("len expects string, array or object but inferred " + kind)
+            self.fail(
+              "len expects string, array or object but inferred " + kind,
+            )
             "unknown"
           }
         }
@@ -175,9 +169,7 @@ fn CheckState::infer(self : CheckState, expr : Expression) -> String {
           } else if kind == "array" {
             "boolean"
           } else {
-            self.fail(
-              "contains expects string or array but inferred " + kind,
-            )
+            self.fail("contains expects string or array but inferred " + kind)
             "unknown"
           }
         }
@@ -269,9 +261,7 @@ fn compile_checked(
   source : String,
   role : String,
 ) -> Expression? {
-  let parsed : Expression? = try {
-    Some(compile(source))
-  } catch {
+  let parsed : Expression? = Some(compile(source)) catch {
     error => {
       state.fail(role + " does not compile: " + error.to_string())
       None
@@ -289,7 +279,10 @@ fn check_request(request : Value) -> Value raise {
       for key, value in fields {
         let kind = str(value)
         if !known_types.contains(kind) {
-          raise input_error("E3008", "unknown schema type for " + key + ": " + kind)
+          raise input_error(
+            "E3008",
+            "unknown schema type for " + key + ": " + kind,
+          )
         }
         schema[key] = kind
       }
@@ -298,7 +291,7 @@ fn check_request(request : Value) -> Value raise {
   match get(request, "expression") {
     Null => ()
     source => {
-      let state : CheckState = { schema, errors: [] }
+      let state : CheckState = { schema, errors: [], }
       let inferred = match compile_checked(state, str(source), "expression") {
         Some(expr) => state.infer(expr)
         None => "unknown"
@@ -359,9 +352,7 @@ fn check_request(request : Value) -> Value raise {
         if get(item, "output") is Null {
           state.fail("rule needs an output value or a compute expression")
         }
-      String(source) => {
-        ignore(compile_checked(state, source, "compute"))
-      }
+      String(source) => ignore(compile_checked(state, source, "compute"))
       _ => state.fail("compute must be a string")
     }
     if errors.is_empty() {

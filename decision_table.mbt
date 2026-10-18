@@ -20,7 +20,11 @@ fn compile_cell(column : String, cell : Value) -> String raise {
       for op in operators {
         if text.has_prefix(op) {
           matched = op
-          rest = text.substring(start=op.length()).to_string().trim().to_string()
+          rest = text
+            .substring(start=op.length())
+            .to_string()
+            .trim()
+            .to_string()
           break
         }
       }
@@ -28,11 +32,7 @@ fn compile_cell(column : String, cell : Value) -> String raise {
         rest = text.trim().to_string()
         matched = "=="
       }
-      let literal : Value? = try {
-        Some(parse_value(rest))
-      } catch {
-        _ => None
-      }
+      let literal : Value? = Some(parse_value(rest)) catch { _ => None }
       let rendered = match literal {
         Some(Number(value)) => {
           if value.is_nan() || value.is_inf() {
@@ -90,10 +90,7 @@ fn decision_table_request(request : Value) -> Value raise {
       if cell is Null {
         raise input_error(
           "E4006",
-          "row " +
-          row_number.to_string() +
-          " is missing column " +
-          column,
+          "row " + row_number.to_string() + " is missing column " + column,
         )
       }
       when_parts.push(compile_cell(column, cell))

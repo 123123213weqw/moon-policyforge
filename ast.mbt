@@ -13,8 +13,7 @@
 ///|
 fn Expression::to_ast(self : Expression) -> Value {
   match self {
-    Literal(value) =>
-      record([("kind", String("literal")), ("value", value)])
+    Literal(value) => record([("kind", String("literal")), ("value", value)])
     Variable(path) =>
       record([("kind", String("variable")), ("path", String(path))])
     Unary(op, operand) =>
@@ -72,10 +71,9 @@ fn Expression::from_ast(value : Value) -> Expression raise {
     "call" => {
       let name = str(get(value, "name"))
       let allowed = [
-        "exists", "len", "contains", "lower", "upper", "trim",
-        "starts_with", "ends_with", "replace", "substring", "abs",
-        "floor", "ceil", "round", "min", "max", "sum", "concat",
-        "count_matches", "any_match", "all_match",
+        "exists", "len", "contains", "lower", "upper", "trim", "starts_with", "ends_with",
+        "replace", "substring", "abs", "floor", "ceil", "round", "min", "max", "sum",
+        "concat", "count_matches", "any_match", "all_match",
       ]
       if !allowed.contains(name) {
         raise input_error("E1008", "unknown function: " + name)
@@ -96,7 +94,10 @@ fn ast_request(request : Value) -> Value raise {
     Null => ()
     source => {
       let expr = compile(str(source))
-      return record([("ast", expr.to_ast()), ("canonical", String(expr.render()))])
+      return record([
+        ("ast", expr.to_ast()),
+        ("canonical", String(expr.render())),
+      ])
     }
   }
   let tree = get(request, "ast")

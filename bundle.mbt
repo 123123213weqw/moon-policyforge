@@ -29,17 +29,12 @@ fn bundle_validate_request(request : Value) -> Value raise {
     versions[version] = true
     match previous {
       None => ()
-      Some(before) => {
-        chain.push(before + " -> " + version)
-      }
+      Some(before) => chain.push(before + " -> " + version)
     }
     previous = Some(version)
     let rules = arr(get(item, "rules"))
     if rules.is_empty() {
-      raise input_error(
-        "E4003",
-        "bundle version " + version + " has no rules",
-      )
+      raise input_error("E4003", "bundle version " + version + " has no rules")
     }
     let compiled = compile_rules_request(record([("rules", Array(rules))]))
     let program = get(compiled, "program")
@@ -52,10 +47,7 @@ fn bundle_validate_request(request : Value) -> Value raise {
       if !versions.contains(removed) {
         raise input_error(
           "E4004",
-          "version " +
-          version +
-          " deprecates unknown version " +
-          removed,
+          "version " + version + " deprecates unknown version " + removed,
         )
       }
     }

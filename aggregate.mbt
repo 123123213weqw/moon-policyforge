@@ -18,11 +18,11 @@ struct MetricSpec {
 struct GroupAcc {
   key_value : Value
   key_canonical : String
-  mut count : Int
+  mut count : Int32
   sums : Map[String, Double]
   mins : Map[String, Double]
   maxs : Map[String, Double]
-  mut metric_errors : Int
+  mut metric_errors : Int32
 }
 
 ///|
@@ -50,7 +50,7 @@ fn parse_metrics(source : Value) -> Array[MetricSpec] raise {
     if !["count", "sum", "avg", "min", "max"].contains(op) {
       raise input_error("E4005", "unknown metric op: " + op)
     }
-    specs.push({ name, op, expr })
+    specs.push({ name, op, expr, })
   }
   specs
 }
@@ -68,15 +68,11 @@ fn GroupAcc::record_number(
   }
   match self.mins.get(spec.name) {
     None => self.mins[spec.name] = value
-    Some(current) => if value < current {
-      self.mins[spec.name] = value
-    }
+    Some(current) => if value < current { self.mins[spec.name] = value }
   }
   match self.maxs.get(spec.name) {
     None => self.maxs[spec.name] = value
-    Some(current) => if value > current {
-      self.maxs[spec.name] = value
-    }
+    Some(current) => if value > current { self.maxs[spec.name] = value }
   }
 }
 
@@ -107,7 +103,7 @@ fn GroupAcc::metric_values(
 }
 
 ///|
-fn type_rank(value : Value) -> Int {
+fn type_rank(value : Value) -> Int32 {
   match value {
     Null => 0
     Bool(_) => 1
@@ -122,14 +118,10 @@ fn type_rank(value : Value) -> Int {
 /// Character-wise lexicographic order. The core string compare is not
 /// byte-lexicographic on this toolchain, so group ordering uses this
 /// explicit comparator to stay deterministic and conventional.
-fn stable_string_compare(a : String, b : String) -> Int {
+fn stable_string_compare(a : String, b : String) -> Int32 {
   let ac = a.to_array()
   let bc = b.to_array()
-  let shared = if ac.length() < bc.length() {
-    ac.length()
-  } else {
-    bc.length()
-  }
+  let shared = if ac.length() < bc.length() { ac.length() } else { bc.length() }
   for i in 0..<shared {
     if ac[i] < bc[i] {
       return -1
@@ -145,7 +137,7 @@ fn stable_string_compare(a : String, b : String) -> Int {
 /// Total order over semantic values: null, then false, true, numbers in
 /// numeric order, strings in character order, then arrays and objects by
 /// their canonical JSON form.
-fn stable_value_compare(a : Value, b : Value) -> Int {
+fn stable_value_compare(a : Value, b : Value) -> Int32 {
   let ra = type_rank(a)
   let rb = type_rank(b)
   if ra != rb {
@@ -181,9 +173,7 @@ fn aggregate_request(request : Value) -> Value raise {
   }
   for fact in facts {
     let state : Evaluation = { fuel: budget, trace: [], }
-    let key_value = try {
-      evaluate(key_expr, fact, state)
-    } catch {
+    let key_value = evaluate(key_expr, fact, state) catch {
       error => {
         record_errors += 1
         continue
@@ -224,7 +214,7 @@ fn aggregate_request(request : Value) -> Value raise {
       }
     }
   }
-  order.sort()
+  order.sort_by(stable_string_compare)
   let accs : Array[GroupAcc] = []
   for canonical_key in order {
     accs.push(groups[canonical_key])

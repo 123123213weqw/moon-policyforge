@@ -77,7 +77,9 @@ fn optimize_request(request : Value) -> Value raise {
   let savings = if original_nodes == 0 {
     0.0
   } else {
-    (original_nodes - optimized_nodes).to_double() * 100.0 / original_nodes.to_double()
+    (original_nodes - optimized_nodes).to_double() *
+    100.0 /
+    original_nodes.to_double()
   }
   record([
     ("original", String(original_canonical)),
@@ -94,7 +96,11 @@ fn optimize_request(request : Value) -> Value raise {
 ///|
 /// Evaluates an expression on the optimized tree. Values and error
 /// classes match the unoptimized evaluation; steps and traces shrink.
-fn evaluate_optimized(source : String, facts : Value, budget : Int) -> Value raise {
+fn evaluate_optimized(
+  source : String,
+  facts : Value,
+  budget : Int32,
+) -> Value raise {
   let optimized = optimize_expr(compile(source))
   let state : Evaluation = { fuel: budget, trace: [], }
   evaluate(optimized, facts, state)

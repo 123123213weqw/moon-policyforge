@@ -367,14 +367,8 @@ test "check rules issues" {
     ),
   )
   assert_eq(test_at(result, ["ok"]), parse_value("false"))
-  assert_eq(
-    test_at(result, ["rules", "1", "valid"]),
-    parse_value("false"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "2", "valid"]),
-    parse_value("false"),
-  )
+  assert_eq(test_at(result, ["rules", "1", "valid"]), parse_value("false"))
+  assert_eq(test_at(result, ["rules", "2", "valid"]), parse_value("false"))
 }
 
 ///|
@@ -408,8 +402,6 @@ test "check string concat type mismatch" {
   assert_eq(test_at(result, ["ok"]), parse_value("false"))
 }
 
-
-
 ///|
 test "upper function" {
   let result = run(
@@ -437,7 +429,6 @@ test "upper requires string" {
   assert_true(failed)
 }
 
-
 ///|
 test "trim function" {
   let result = run(
@@ -464,7 +455,6 @@ test "trim requires string" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "starts_with and ends_with" {
@@ -499,7 +489,6 @@ test "starts_with requires string arguments" {
   assert_true(failed)
 }
 
-
 ///|
 test "replace function" {
   let result = run(
@@ -526,7 +515,6 @@ test "replace requires three strings" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "substring function" {
@@ -555,7 +543,6 @@ test "substring out of bounds" {
   assert_true(failed)
 }
 
-
 ///|
 test "floor and ceil" {
   let result = run(
@@ -582,7 +569,6 @@ test "floor requires number" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "round function" {
@@ -611,7 +597,6 @@ test "round requires number" {
   assert_true(failed)
 }
 
-
 ///|
 test "min and max" {
   let result = run(
@@ -638,7 +623,6 @@ test "max requires numbers" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "sum array" {
@@ -667,7 +651,6 @@ test "sum requires numeric elements" {
   assert_true(failed)
 }
 
-
 ///|
 test "concat array" {
   let result = run(
@@ -695,13 +678,10 @@ test "concat requires string elements" {
   assert_true(failed)
 }
 
-
 ///|
 test "serialize canonical form and metrics" {
   let result = run(
-    parse_value(
-      "{\"operation\":\"serialize\",\"expression\":\"  1+2*3  \"}",
-    ),
+    parse_value("{\"operation\":\"serialize\",\"expression\":\"  1+2*3  \"}"),
   )
   assert_eq(test_at(result, ["canonical"]), parse_value("\"1 + 2 * 3\""))
   assert_eq(test_at(result, ["nodes"]), parse_value("5"))
@@ -711,9 +691,7 @@ test "serialize canonical form and metrics" {
 ///|
 test "serialize preserves explicit grouping" {
   let result = run(
-    parse_value(
-      "{\"operation\":\"serialize\",\"expression\":\"(1 + 2) * 3\"}",
-    ),
+    parse_value("{\"operation\":\"serialize\",\"expression\":\"(1 + 2) * 3\"}"),
   )
   assert_eq(test_at(result, ["canonical"]), parse_value("\"(1 + 2) * 3\""))
 }
@@ -744,10 +722,7 @@ test "serialize logical precedence" {
       "{\"operation\":\"serialize\",\"expression\":\"(a || b) && c\"}",
     ),
   )
-  assert_eq(
-    test_at(grouped, ["canonical"]),
-    parse_value("\"(a || b) && c\""),
-  )
+  assert_eq(test_at(grouped, ["canonical"]), parse_value("\"(a || b) && c\""))
 }
 
 ///|
@@ -779,9 +754,7 @@ test "serialize calls and unary chain" {
 ///|
 test "serialize tree description" {
   let result = run(
-    parse_value(
-      "{\"operation\":\"serialize\",\"expression\":\"a + b * 2\"}",
-    ),
+    parse_value("{\"operation\":\"serialize\",\"expression\":\"a + b * 2\"}"),
   )
   match test_at(result, ["tree"]) {
     Array(lines) => assert_eq(lines.length(), 5)
@@ -828,7 +801,6 @@ test "roundtrip rejects bad budget" {
   assert_true(failed)
 }
 
-
 ///|
 test "aggregate sum avg min max by tier" {
   let result = run(
@@ -837,10 +809,7 @@ test "aggregate sum avg min max by tier" {
     ),
   )
   assert_eq(test_at(result, ["group_count"]), parse_value("2"))
-  assert_eq(
-    test_at(result, ["groups", "0", "key"]),
-    parse_value("\"g\""),
-  )
+  assert_eq(test_at(result, ["groups", "0", "key"]), parse_value("\"g\""))
   assert_eq(
     test_at(result, ["groups", "0", "metrics", "total"]),
     parse_value("30"),
@@ -853,10 +822,7 @@ test "aggregate sum avg min max by tier" {
     test_at(result, ["groups", "0", "metrics", "hi"]),
     parse_value("20"),
   )
-  assert_eq(
-    test_at(result, ["groups", "1", "metrics", "lo"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["groups", "1", "metrics", "lo"]), parse_value("1"))
   assert_eq(test_at(result, ["records"]), parse_value("4"))
 }
 
@@ -867,18 +833,9 @@ test "aggregate numeric keys sorted canonically" {
       "{\"operation\":\"aggregate\",\"facts\":[{\"band\":20},{\"band\":3},{\"band\":20}],\"key\":\"band\",\"metrics\":[{\"name\":\"n\",\"op\":\"count\"}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["groups", "0", "key"]),
-    parse_value("3"),
-  )
-  assert_eq(
-    test_at(result, ["groups", "0", "metrics", "n"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["groups", "1", "metrics", "n"]),
-    parse_value("2"),
-  )
+  assert_eq(test_at(result, ["groups", "0", "key"]), parse_value("3"))
+  assert_eq(test_at(result, ["groups", "0", "metrics", "n"]), parse_value("1"))
+  assert_eq(test_at(result, ["groups", "1", "metrics", "n"]), parse_value("2"))
 }
 
 ///|
@@ -889,14 +846,8 @@ test "aggregate computed key expression" {
     ),
   )
   assert_eq(test_at(result, ["group_count"]), parse_value("2"))
-  assert_eq(
-    test_at(result, ["groups", "0", "metrics", "n"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["groups", "1", "metrics", "n"]),
-    parse_value("2"),
-  )
+  assert_eq(test_at(result, ["groups", "0", "metrics", "n"]), parse_value("1"))
+  assert_eq(test_at(result, ["groups", "1", "metrics", "n"]), parse_value("2"))
 }
 
 ///|
@@ -988,7 +939,6 @@ test "aggregate budget validated" {
   assert_true(failed)
 }
 
-
 ///|
 test "infer nested schema types" {
   let result = run(
@@ -996,22 +946,10 @@ test "infer nested schema types" {
       "{\"operation\":\"infer\",\"facts\":[{\"user\":{\"age\":30,\"name\":\"bob\"},\"active\":true,\"tags\":[\"a\"],\"score\":1.5}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["schema", "user.age"]),
-    parse_value("\"number\""),
-  )
-  assert_eq(
-    test_at(result, ["schema", "user.name"]),
-    parse_value("\"string\""),
-  )
-  assert_eq(
-    test_at(result, ["schema", "active"]),
-    parse_value("\"boolean\""),
-  )
-  assert_eq(
-    test_at(result, ["schema", "tags"]),
-    parse_value("\"array\""),
-  )
+  assert_eq(test_at(result, ["schema", "user.age"]), parse_value("\"number\""))
+  assert_eq(test_at(result, ["schema", "user.name"]), parse_value("\"string\""))
+  assert_eq(test_at(result, ["schema", "active"]), parse_value("\"boolean\""))
+  assert_eq(test_at(result, ["schema", "tags"]), parse_value("\"array\""))
   assert_eq(test_at(result, ["mixed"]), parse_value("[]"))
   assert_eq(test_at(result, ["scanned"]), parse_value("1"))
 }
@@ -1073,14 +1011,8 @@ test "infer null and nested arrays" {
       "{\"operation\":\"infer\",\"facts\":[{\"extra\":null,\"matrix\":[[1],[2]]}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["schema", "extra"]),
-    parse_value("\"null\""),
-  )
-  assert_eq(
-    test_at(result, ["schema", "matrix"]),
-    parse_value("\"array\""),
-  )
+  assert_eq(test_at(result, ["schema", "extra"]), parse_value("\"null\""))
+  assert_eq(test_at(result, ["schema", "matrix"]), parse_value("\"array\""))
 }
 
 ///|
@@ -1090,14 +1022,8 @@ test "infer union of paths across records" {
       "{\"operation\":\"infer\",\"facts\":[{\"a\":1},{\"b\":2},{\"a\":3,\"b\":4}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["schema", "a"]),
-    parse_value("\"number\""),
-  )
-  assert_eq(
-    test_at(result, ["schema", "b"]),
-    parse_value("\"number\""),
-  )
+  assert_eq(test_at(result, ["schema", "a"]), parse_value("\"number\""))
+  assert_eq(test_at(result, ["schema", "b"]), parse_value("\"number\""))
   assert_eq(test_at(result, ["scanned"]), parse_value("3"))
 }
 
@@ -1119,7 +1045,6 @@ test "inferred schema feeds check" {
   assert_eq(test_at(result, ["ok"]), parse_value("true"))
   assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
 }
-
 
 ///|
 test "analyze extracts dependencies and metrics" {
@@ -1250,7 +1175,6 @@ test "analyze rejects non-string compute" {
   assert_true(failed)
 }
 
-
 ///|
 fn explain_sample() -> Value raise {
   run(
@@ -1363,7 +1287,6 @@ test "explain validates mode and budget" {
   assert_true(failed_budget)
 }
 
-
 ///|
 test "optimize folds literal arithmetic" {
   let result = run(
@@ -1429,10 +1352,7 @@ test "optimize folds nested constants inside calls" {
       "{\"operation\":\"optimize\",\"expression\":\"len(items) > 1 + 1 && abs(-5) == 5\"}",
     ),
   )
-  assert_eq(
-    test_at(result, ["canonical"]),
-    parse_value("\"len(items) > 2\""),
-  )
+  assert_eq(test_at(result, ["canonical"]), parse_value("\"len(items) > 2\""))
 }
 
 ///|
@@ -1452,10 +1372,7 @@ test "optimized evaluate preserves value" {
       ",\"optimize\":true}",
     ),
   )
-  assert_eq(
-    test_at(plain, ["value"]),
-    test_at(optimized, ["value"]),
-  )
+  assert_eq(test_at(plain, ["value"]), test_at(optimized, ["value"]))
   assert_eq(test_at(optimized, ["value"]), parse_value("true"))
 }
 
@@ -1479,14 +1396,11 @@ test "optimized evaluate preserves errors" {
 ///|
 test "optimize idempotent on already minimal trees" {
   let result = run(
-    parse_value(
-      "{\"operation\":\"optimize\",\"expression\":\"amount > 100\"}",
-    ),
+    parse_value("{\"operation\":\"optimize\",\"expression\":\"amount > 100\"}"),
   )
   assert_eq(test_at(result, ["changed"]), parse_value("false"))
   assert_eq(test_at(result, ["savings_percent"]), parse_value("0"))
 }
-
 
 ///|
 fn sample_program() -> Value raise {
@@ -1644,7 +1558,6 @@ test "run program per-record errors" {
   }
 }
 
-
 ///|
 test "coverage tallies hits and rates" {
   let result = run(
@@ -1655,14 +1568,8 @@ test "coverage tallies hits and rates" {
   assert_eq(test_at(result, ["records"]), parse_value("3"))
   assert_eq(test_at(result, ["covered_records"]), parse_value("2"))
   assert_eq(test_at(result, ["multi_hit_records"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["rules", "0", "hits"]),
-    parse_value("2"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "1", "hits"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["rules", "0", "hits"]), parse_value("2"))
+  assert_eq(test_at(result, ["rules", "1", "hits"]), parse_value("1"))
   assert_eq(
     test_at(result, ["rules", "1", "hit_rate"]),
     parse_value("33.333333333333336"),
@@ -1685,7 +1592,10 @@ test "coverage pattern distribution sorted" {
       assert_eq(test_at(entries[0], ["records"]), parse_value("1"))
       assert_eq(test_at(entries[1], ["matched"]), parse_value("\"a+b\""))
       assert_eq(test_at(entries[2], ["matched"]), parse_value("\"none\""))
-      assert_eq(test_at(entries[2], ["share"]), parse_value("33.333333333333336"))
+      assert_eq(
+        test_at(entries[2], ["share"]),
+        parse_value("33.333333333333336"),
+      )
     }
     _ => assert_true(false)
   }
@@ -1699,18 +1609,9 @@ test "coverage counts per-rule errors without aborting" {
     ),
   )
   assert_eq(test_at(result, ["error_records"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["rules", "0", "errors"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "0", "evaluated"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "1", "hits"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["rules", "0", "errors"]), parse_value("1"))
+  assert_eq(test_at(result, ["rules", "0", "evaluated"]), parse_value("1"))
+  assert_eq(test_at(result, ["rules", "1", "hits"]), parse_value("1"))
 }
 
 ///|
@@ -1721,10 +1622,7 @@ test "coverage always hit detection" {
     ),
   )
   assert_eq(test_at(result, ["always_hit"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["rules", "0", "hit_rate"]),
-    parse_value("100"),
-  )
+  assert_eq(test_at(result, ["rules", "0", "hit_rate"]), parse_value("100"))
 }
 
 ///|
@@ -1743,7 +1641,6 @@ test "coverage validates budget" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "rule graph links shared dependencies" {
@@ -1811,9 +1708,7 @@ test "rule graph transitive components merge" {
 
 ///|
 test "rule graph empty input" {
-  let result = run(
-    parse_value("{\"operation\":\"rule_graph\",\"rules\":[]}"),
-  )
+  let result = run(parse_value("{\"operation\":\"rule_graph\",\"rules\":[]}"))
   assert_eq(test_at(result, ["nodes"]), parse_value("[]"))
   assert_eq(test_at(result, ["edges"]), parse_value("[]"))
   assert_eq(test_at(result, ["isolated"]), parse_value("[]"))
@@ -1835,7 +1730,6 @@ test "rule graph rejects duplicate ids" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "count_matches scores thresholds" {
@@ -1925,7 +1819,6 @@ test "check pins quantifier signatures" {
   assert_eq(test_at(result, ["type"]), parse_value("\"boolean\""))
 }
 
-
 ///|
 test "pick projects nested paths" {
   let result = run(
@@ -1933,14 +1826,8 @@ test "pick projects nested paths" {
       "{\"operation\":\"pick\",\"facts\":{\"user\":{\"age\":30,\"name\":\"bob\"},\"tags\":[\"x\",\"y\"]},\"paths\":[\"user.age\",\"tags.1\",\"user.email\"]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["picked", "user", "age"]),
-    parse_value("30"),
-  )
-  assert_eq(
-    test_at(result, ["picked", "tags", "1"]),
-    parse_value("\"y\""),
-  )
+  assert_eq(test_at(result, ["picked", "user", "age"]), parse_value("30"))
+  assert_eq(test_at(result, ["picked", "tags", "1"]), parse_value("\"y\""))
   assert_eq(test_at(result, ["missing"]), parse_value("[\"user.email\"]"))
   assert_eq(test_at(result, ["requested"]), parse_value("3"))
 }
@@ -1984,27 +1871,18 @@ test "pick out-of-range index reported missing" {
   assert_eq(test_at(result, ["picked"]), parse_value("{}"))
 }
 
-
 ///|
 test "ast tree shape for binary and calls" {
   let result = run(
-    parse_value(
-      "{\"operation\":\"ast\",\"expression\":\"1 + len(items)\"}",
-    ),
+    parse_value("{\"operation\":\"ast\",\"expression\":\"1 + len(items)\"}"),
   )
-  assert_eq(
-    test_at(result, ["ast", "kind"]),
-    parse_value("\"binary\""),
-  )
+  assert_eq(test_at(result, ["ast", "kind"]), parse_value("\"binary\""))
   assert_eq(test_at(result, ["ast", "op"]), parse_value("\"+\""))
   assert_eq(
     test_at(result, ["ast", "left", "kind"]),
     parse_value("\"literal\""),
   )
-  assert_eq(
-    test_at(result, ["ast", "right", "name"]),
-    parse_value("\"len\""),
-  )
+  assert_eq(test_at(result, ["ast", "right", "name"]), parse_value("\"len\""))
   assert_eq(test_at(result, ["canonical"]), parse_value("\"1 + len(items)\""))
 }
 
@@ -2024,11 +1902,7 @@ test "ast parse direction rebuilds expression" {
 test "ast rejects unknown kinds and operators" {
   let bad_kind = try {
     ignore(
-      run(
-        parse_value(
-          "{\"operation\":\"ast\",\"ast\":{\"kind\":\"quantum\"}}",
-        ),
-      ),
+      run(parse_value("{\"operation\":\"ast\",\"ast\":{\"kind\":\"quantum\"}}")),
     )
     false
   } catch {
@@ -2071,18 +1945,12 @@ test "ast roundtrip through both directions" {
     ),
   )
   let tree = test_at(source, ["ast"])
-  let back = run(
-    record([
-      ("operation", String("ast")),
-      ("ast", tree),
-    ]),
-  )
+  let back = run(record([("operation", String("ast")), ("ast", tree)]))
   assert_eq(
     test_at(back, ["canonical"]),
     parse_value("\"count_matches(scores, \\\">\\\", 5) > 1\""),
   )
 }
-
 
 ///|
 fn sample_bundle() -> Value raise {
@@ -2093,12 +1961,14 @@ fn sample_bundle() -> Value raise {
 
 ///|
 test "bundle validate reports head and chain" {
-  let result = run(record([("operation", String("bundle_validate")), ("versions", get(sample_bundle(), "versions"))]))
-  assert_eq(test_at(result, ["head"]), parse_value("\"1.1.0\""))
-  assert_eq(
-    test_at(result, ["chain", "0"]),
-    parse_value("\"1.0.0 -> 1.1.0\""),
+  let result = run(
+    record([
+      ("operation", String("bundle_validate")),
+      ("versions", get(sample_bundle(), "versions")),
+    ]),
   )
+  assert_eq(test_at(result, ["head"]), parse_value("\"1.1.0\""))
+  assert_eq(test_at(result, ["chain", "0"]), parse_value("\"1.0.0 -> 1.1.0\""))
   assert_eq(test_at(result, ["rule_count_total"]), parse_value("3"))
   assert_eq(
     test_at(result, ["steps", "1", "duplicate_conditions"]),
@@ -2200,7 +2070,6 @@ test "bundle resolve rejects unknown current" {
   assert_true(failed)
 }
 
-
 ///|
 test "decision table compiles ranges to rules" {
   let result = run(
@@ -2213,10 +2082,7 @@ test "decision table compiles ranges to rules" {
     test_at(result, ["rules", "0", "when"]),
     parse_value("\"amount >= 100\""),
   )
-  assert_eq(
-    test_at(result, ["rules", "0", "priority"]),
-    parse_value("2"),
-  )
+  assert_eq(test_at(result, ["rules", "0", "priority"]), parse_value("2"))
   assert_eq(
     test_at(result, ["rules", "1", "when"]),
     parse_value("\"amount > 0\""),
@@ -2304,7 +2170,6 @@ test "decision table string cells compare equality" {
   )
 }
 
-
 ///|
 test "lint clean ruleset passes" {
   let result = run(
@@ -2350,14 +2215,8 @@ test "lint surfaces schema type errors" {
   assert_eq(test_at(result, ["finding_count"]), parse_value("1"))
   match test_at(result, ["findings", "0"]) {
     Object(fields) => {
-      assert_eq(
-        fields.get("source"),
-        Some(String("types")),
-      )
-      assert_eq(
-        fields.get("kind"),
-        Some(String("type_error")),
-      )
+      assert_eq(fields.get("source"), Some(String("types")))
+      assert_eq(fields.get("kind"), Some(String("type_error")))
     }
     _ => assert_true(false)
   }
@@ -2375,10 +2234,7 @@ test "lint reports bundle integrity problems" {
     test_at(result, ["summary", "2", "source"]),
     parse_value("\"bundle\""),
   )
-  assert_eq(
-    test_at(result, ["summary", "2", "findings"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["summary", "2", "findings"]), parse_value("1"))
 }
 
 ///|
@@ -2389,14 +2245,8 @@ test "lint without bundle section reports zero" {
     ),
   )
   assert_eq(test_at(result, ["ok"]), parse_value("false"))
-  assert_eq(
-    test_at(result, ["summary", "0", "findings"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["summary", "2", "findings"]),
-    parse_value("0"),
-  )
+  assert_eq(test_at(result, ["summary", "0", "findings"]), parse_value("1"))
+  assert_eq(test_at(result, ["summary", "2", "findings"]), parse_value("0"))
 }
 
 ///|
@@ -2409,23 +2259,13 @@ test "lint sections all present in report" {
   match test_at(result, ["sections"]) {
     Array(sections) => {
       assert_eq(sections.length(), 3)
-      assert_eq(
-        test_at(sections[0], ["section"]),
-        parse_value("\"analysis\""),
-      )
-      assert_eq(
-        test_at(sections[1], ["section"]),
-        parse_value("\"types\""),
-      )
-      assert_eq(
-        test_at(sections[2], ["section"]),
-        parse_value("\"bundle\""),
-      )
+      assert_eq(test_at(sections[0], ["section"]), parse_value("\"analysis\""))
+      assert_eq(test_at(sections[1], ["section"]), parse_value("\"types\""))
+      assert_eq(test_at(sections[2], ["section"]), parse_value("\"bundle\""))
     }
     _ => assert_true(false)
   }
 }
-
 
 ///|
 test "fmt normalizes conditions and counts changes" {
@@ -2454,14 +2294,8 @@ test "fmt defaults priorities and keeps outputs" {
       "{\"operation\":\"fmt\",\"rules\":[{\"id\":\"a\",\"when\":\"true\",\"output\":\"x\"}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["rules", "0", "priority"]),
-    parse_value("0"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "0", "output"]),
-    parse_value("\"x\""),
-  )
+  assert_eq(test_at(result, ["rules", "0", "priority"]), parse_value("0"))
+  assert_eq(test_at(result, ["rules", "0", "output"]), parse_value("\"x\""))
 }
 
 ///|
@@ -2541,7 +2375,6 @@ test "fmt rejects non-string compute" {
   assert_true(failed)
 }
 
-
 ///|
 test "export schema builds nested document" {
   let result = run(
@@ -2551,20 +2384,21 @@ test "export schema builds nested document" {
   )
   assert_eq(test_at(result, ["paths"]), parse_value("3"))
   assert_eq(test_at(result, ["draft"]), parse_value("\"2020-12\""))
-  assert_eq(
-    test_at(result, ["json_schema", "type"]),
-    parse_value("\"object\""),
-  )
+  assert_eq(test_at(result, ["json_schema", "type"]), parse_value("\"object\""))
   assert_eq(
     test_at(result, ["json_schema", "properties", "active", "type"]),
     parse_value("\"boolean\""),
   )
   assert_eq(
-    test_at(result, ["json_schema", "properties", "user", "properties", "age", "type"]),
+    test_at(result, [
+      "json_schema", "properties", "user", "properties", "age", "type",
+    ]),
     parse_value("\"number\""),
   )
   assert_eq(
-    test_at(result, ["json_schema", "properties", "user", "properties", "name", "type"]),
+    test_at(result, [
+      "json_schema", "properties", "user", "properties", "name", "type",
+    ]),
     parse_value("\"string\""),
   )
 }
@@ -2599,7 +2433,9 @@ test "export schema infers when no schema given" {
   )
   assert_eq(test_at(result, ["paths"]), parse_value("3"))
   assert_eq(
-    test_at(result, ["json_schema", "properties", "user", "properties", "age", "type"]),
+    test_at(result, [
+      "json_schema", "properties", "user", "properties", "age", "type",
+    ]),
     parse_value("\"number\""),
   )
   assert_eq(
@@ -2611,13 +2447,7 @@ test "export schema infers when no schema given" {
 ///|
 test "export schema rejects non-object schema" {
   let failed = try {
-    ignore(
-      run(
-        parse_value(
-          "{\"operation\":\"export_schema\",\"schema\":[1]}",
-        ),
-      ),
-    )
+    ignore(run(parse_value("{\"operation\":\"export_schema\",\"schema\":[1]}")))
     false
   } catch {
     _ => true
@@ -2625,7 +2455,7 @@ test "export schema rejects non-object schema" {
   assert_true(failed)
 }
 
-
+///|
 fn sample_bundle_v2() -> Value raise {
   parse_value(
     "{\"versions\":[{\"version\":\"1.0.0\",\"rules\":[{\"id\":\"base\",\"when\":\"true\",\"output\":\"v1\"}]},{\"version\":\"1.1.0\",\"rules\":[{\"id\":\"base\",\"when\":\"x > 1\",\"output\":\"v2\"},{\"id\":\"extra\",\"when\":\"y > 2\",\"output\":\"extra\"}]}]}",
@@ -2644,18 +2474,12 @@ test "migrate applies pending steps" {
   assert_eq(test_at(result, ["version"]), parse_value("\"1.1.0\""))
   assert_eq(test_at(result, ["applied_steps"]), parse_value("1"))
   assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
-  assert_eq(
-    test_at(result, ["program", "0", "id"]),
-    parse_value("\"base\""),
-  )
+  assert_eq(test_at(result, ["program", "0", "id"]), parse_value("\"base\""))
   assert_eq(
     test_at(result, ["program", "0", "condition"]),
     parse_value("\"x > 1\""),
   )
-  assert_eq(
-    test_at(result, ["program", "0", "output"]),
-    parse_value("\"v2\""),
-  )
+  assert_eq(test_at(result, ["program", "0", "output"]), parse_value("\"v2\""))
 }
 
 ///|
@@ -2669,10 +2493,7 @@ test "migrate up to date returns head program" {
   )
   assert_eq(test_at(result, ["applied_steps"]), parse_value("0"))
   assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
-  assert_eq(
-    test_at(result, ["program", "1", "id"]),
-    parse_value("\"extra\""),
-  )
+  assert_eq(test_at(result, ["program", "1", "id"]), parse_value("\"extra\""))
 }
 
 ///|
@@ -2711,10 +2532,7 @@ test "migrate replaces same id across three versions" {
   )
   assert_eq(test_at(result, ["applied_steps"]), parse_value("2"))
   assert_eq(test_at(result, ["rule_count"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["program", "0", "output"]),
-    parse_value("3"),
-  )
+  assert_eq(test_at(result, ["program", "0", "output"]), parse_value("3"))
 }
 
 ///|
@@ -2735,7 +2553,6 @@ test "migrate rejects unknown current" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "validate accepts clean records" {
@@ -2834,7 +2651,7 @@ test "validate rejects unknown schema type" {
   assert_true(failed)
 }
 
-
+///|
 fn conflict_pairs(expression_a : String, expression_b : String) -> Value raise {
   let result = run(
     parse_value(
@@ -2863,10 +2680,7 @@ fn conflict_pair(expression_a : String, expression_b : String) -> Value raise {
 ///|
 test "conflicts detects disjoint ranges" {
   let pair = conflict_pair("amount > 10", "amount < 5")
-  assert_eq(
-    test_at(pair, ["relation"]),
-    parse_value("\"disjoint\""),
-  )
+  assert_eq(test_at(pair, ["relation"]), parse_value("\"disjoint\""))
   // Touching bounds with matching strictness are not disjoint and not
   // in subsumption, so no relation is emitted for the pair.
   let empty = conflict_pairs("amount >= 10", "amount <= 10")
@@ -2879,57 +2693,35 @@ test "conflicts detects disjoint ranges" {
 ///|
 test "conflicts detects equality disjointness" {
   let pair = conflict_pair("tier_level == 5", "tier_level == 7")
-  assert_eq(
-    test_at(pair, ["relation"]),
-    parse_value("\"disjoint\""),
-  )
+  assert_eq(test_at(pair, ["relation"]), parse_value("\"disjoint\""))
   let same = conflict_pair("tier_level == 5", "tier_level == 5")
-  assert_eq(
-    test_at(same, ["relation"]),
-    parse_value("\"equivalent\""),
-  )
+  assert_eq(test_at(same, ["relation"]), parse_value("\"equivalent\""))
 }
 
 ///|
 test "conflicts detects subsumption direction" {
   let pair = conflict_pair("amount > 5", "amount > 10")
-  assert_eq(
-    test_at(pair, ["relation"]),
-    parse_value("\"a_subsumes_b\""),
-  )
+  assert_eq(test_at(pair, ["relation"]), parse_value("\"a_subsumes_b\""))
   let reversed = conflict_pair("amount > 10", "amount > 5")
-  assert_eq(
-    test_at(reversed, ["relation"]),
-    parse_value("\"b_subsumes_a\""),
-  )
+  assert_eq(test_at(reversed, ["relation"]), parse_value("\"b_subsumes_a\""))
 }
 
 ///|
 test "conflicts subsumption through bounds" {
   // [6, 100) is contained in [6, inf): the looser B subsumes A.
   let pair = conflict_pair("amount >= 6 && amount < 100", "amount >= 6")
-  assert_eq(
-    test_at(pair, ["relation"]),
-    parse_value("\"b_subsumes_a\""),
-  )
+  assert_eq(test_at(pair, ["relation"]), parse_value("\"b_subsumes_a\""))
   // Same atoms reordered are equivalent regardless of order.
   let equivalent = conflict_pair(
-    "amount >= 6 && amount < 100",
-    "amount < 100 && amount >= 6",
+    "amount >= 6 && amount < 100", "amount < 100 && amount >= 6",
   )
-  assert_eq(
-    test_at(equivalent, ["relation"]),
-    parse_value("\"equivalent\""),
-  )
+  assert_eq(test_at(equivalent, ["relation"]), parse_value("\"equivalent\""))
 }
 
 ///|
 test "conflicts marks disjunctions unanalyzed" {
   let pair = conflict_pair("amount > 5 || tier == 1", "amount > 10")
-  assert_eq(
-    test_at(pair, ["relation"]),
-    parse_value("\"unanalyzed\""),
-  )
+  assert_eq(test_at(pair, ["relation"]), parse_value("\"unanalyzed\""))
 }
 
 ///|
@@ -2951,7 +2743,6 @@ test "conflicts summary counts relations" {
   }
 }
 
-
 ///|
 test "stats summarizes a ruleset" {
   let result = run(
@@ -2961,10 +2752,7 @@ test "stats summarizes a ruleset" {
   )
   assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
   assert_eq(test_at(result, ["compute_count"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["compute_rules", "0"]),
-    parse_value("\"a\""),
-  )
+  assert_eq(test_at(result, ["compute_rules", "0"]), parse_value("\"a\""))
   assert_eq(test_at(result, ["min_priority"]), parse_value("0"))
   assert_eq(test_at(result, ["max_priority"]), parse_value("2"))
   assert_eq(test_at(result, ["max_depth"]), parse_value("3"))
@@ -3026,7 +2814,6 @@ test "stats rejects non-string compute" {
   assert_true(failed)
 }
 
-
 ///|
 test "plan waves groups coupled rules" {
   let result = run(
@@ -3048,14 +2835,8 @@ test "plan waves groups coupled rules" {
     test_at(result, ["waves", "0", "coupled_by", "0"]),
     parse_value("\"amount\""),
   )
-  assert_eq(
-    test_at(result, ["waves", "0", "wave"]),
-    parse_value("0"),
-  )
-  assert_eq(
-    test_at(result, ["waves", "1", "rules"]),
-    parse_value("[\"c\"]"),
-  )
+  assert_eq(test_at(result, ["waves", "0", "wave"]), parse_value("0"))
+  assert_eq(test_at(result, ["waves", "1", "rules"]), parse_value("[\"c\"]"))
 }
 
 ///|
@@ -3070,9 +2851,7 @@ test "plan waves single wave when all isolated" {
 
 ///|
 test "plan waves empty ruleset" {
-  let result = run(
-    parse_value("{\"operation\":\"plan_waves\",\"rules\":[]}"),
-  )
+  let result = run(parse_value("{\"operation\":\"plan_waves\",\"rules\":[]}"))
   assert_eq(test_at(result, ["wave_count"]), parse_value("0"))
   assert_eq(test_at(result, ["rule_count"]), parse_value("0"))
 }
@@ -3091,7 +2870,7 @@ test "plan waves transitive components share one wave" {
   )
 }
 
-
+///|
 fn regression_rules() -> Value raise {
   parse_value(
     "[{\"id\":\"adult\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"fallback\",\"when\":\"true\",\"output\":\"other\"}]",
@@ -3199,7 +2978,7 @@ test "compare rejects empty snapshot" {
   assert_true(failed)
 }
 
-
+///|
 fn template_rules() -> String {
   "[{\"id\":\"vip_{{tier}}\",\"priority\":2,\"when\":\"tier == {{tier}} && total >= {{min}}\",\"compute\":\"total * {{rate}}\"}]"
 }
@@ -3222,10 +3001,7 @@ test "template renders quoted strings and numbers" {
     test_at(result, ["rules", "0", "compute"]),
     parse_value("\"total * 0.15\""),
   )
-  assert_eq(
-    test_at(result, ["rules", "0", "id"]),
-    parse_value("\"vip_gold\""),
-  )
+  assert_eq(test_at(result, ["rules", "0", "id"]), parse_value("\"vip_gold\""))
   assert_eq(test_at(result, ["missing_params"]), parse_value("[]"))
   assert_eq(test_at(result, ["unused_params"]), parse_value("[]"))
 }
@@ -3311,7 +3087,6 @@ test "template output is directly usable as rules" {
   assert_eq(test_at(checked, ["ok"]), parse_value("true"))
 }
 
-
 ///|
 test "score simple condition ranks high" {
   let result = run(
@@ -3319,14 +3094,8 @@ test "score simple condition ranks high" {
       "{\"operation\":\"score\",\"rules\":[{\"id\":\"a\",\"when\":\"age >= 18\"}]}",
     ),
   )
-  assert_eq(
-    test_at(result, ["rules", "0", "rank"]),
-    parse_value("\"simple\""),
-  )
-  assert_eq(
-    test_at(result, ["rules", "0", "score"]),
-    parse_value("100"),
-  )
+  assert_eq(test_at(result, ["rules", "0", "rank"]), parse_value("\"simple\""))
+  assert_eq(test_at(result, ["rules", "0", "score"]), parse_value("100"))
   assert_eq(test_at(result, ["simple"]), parse_value("1"))
   assert_eq(test_at(result, ["average_score"]), parse_value("100"))
 }
@@ -3340,10 +3109,7 @@ test "score penalizes depth and breadth" {
   )
   match test_at(result, ["rules", "0"]) {
     Object(fields) => {
-      assert_eq(
-        fields.get("rank"),
-        Some(String("complex")),
-      )
+      assert_eq(fields.get("rank"), Some(String("complex")))
       assert_true(fields.contains("reasons"))
     }
     _ => assert_true(false)
@@ -3374,10 +3140,7 @@ test "score orders ranks across a mixed set" {
   )
   assert_eq(test_at(result, ["simple"]), parse_value("1"))
   assert_eq(test_at(result, ["complex"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["rules", "1", "rank"]),
-    parse_value("\"complex\""),
-  )
+  assert_eq(test_at(result, ["rules", "1", "rank"]), parse_value("\"complex\""))
 }
 
 ///|
@@ -3385,9 +3148,7 @@ test "score rejects non-positive limits" {
   let failed = try {
     ignore(
       run(
-        parse_value(
-          "{\"operation\":\"score\",\"soft_nodes\":0,\"rules\":[]}",
-        ),
+        parse_value("{\"operation\":\"score\",\"soft_nodes\":0,\"rules\":[]}"),
       ),
     )
     false
@@ -3396,7 +3157,6 @@ test "score rejects non-positive limits" {
   }
   assert_true(failed)
 }
-
 
 ///|
 test "explain rules phrases comparisons naturally" {
@@ -3444,13 +3204,10 @@ test "explain rules keeps canonical alongside" {
     test_at(result, ["explanations", "0", "canonical"]),
     parse_value("\"amount >= 10\""),
   )
-  assert_eq(
-    test_at(result, ["rule_count"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["rule_count"]), parse_value("1"))
 }
 
-
+///|
 fn merge_sets() -> Value raise {
   parse_value(
     "{\"sets\":[{\"name\":\"base\",\"rules\":[{\"id\":\"adult\",\"when\":\"age >= 18\",\"output\":\"adult\"},{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":1}]},{\"name\":\"overlay\",\"rules\":[{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":1},{\"id\":\"shared\",\"when\":\"x > 1\",\"output\":2}]}]}",
@@ -3467,18 +3224,9 @@ test "merge collapses identical and keeps provenance" {
   let result = run(request)
   assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
   assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["conflicted_ids"]),
-    parse_value("[\"shared\"]"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "0", "origin"]),
-    parse_value("\"base\""),
-  )
-  assert_eq(
-    test_at(result, ["rules", "0", "id"]),
-    parse_value("\"adult\""),
-  )
+  assert_eq(test_at(result, ["conflicted_ids"]), parse_value("[\"shared\"]"))
+  assert_eq(test_at(result, ["rules", "0", "origin"]), parse_value("\"base\""))
+  assert_eq(test_at(result, ["rules", "0", "id"]), parse_value("\"adult\""))
   assert_eq(test_at(result, ["strategy"]), parse_value("\"first\""))
 }
 
@@ -3490,14 +3238,8 @@ test "merge first strategy keeps earliest on conflict" {
     _ => ()
   }
   let result = run(request)
-  assert_eq(
-    test_at(result, ["rules", "1", "rule", "output"]),
-    parse_value("1"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "1", "origin"]),
-    parse_value("\"base\""),
-  )
+  assert_eq(test_at(result, ["rules", "1", "rule", "output"]), parse_value("1"))
+  assert_eq(test_at(result, ["rules", "1", "origin"]), parse_value("\"base\""))
 }
 
 ///|
@@ -3512,14 +3254,8 @@ test "merge last strategy takes latest on conflict" {
   }
   let result = run(request)
   assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["conflicted_ids"]),
-    parse_value("[\"shared\"]"),
-  )
-  assert_eq(
-    test_at(result, ["rules", "1", "rule", "output"]),
-    parse_value("2"),
-  )
+  assert_eq(test_at(result, ["conflicted_ids"]), parse_value("[\"shared\"]"))
+  assert_eq(test_at(result, ["rules", "1", "rule", "output"]), parse_value("2"))
   assert_eq(
     test_at(result, ["rules", "1", "origin"]),
     parse_value("\"overlay\""),
@@ -3538,10 +3274,7 @@ test "merge report flags without replacing" {
   }
   let result = run(request)
   assert_eq(test_at(result, ["conflict_count"]), parse_value("1"))
-  assert_eq(
-    test_at(result, ["rules", "1", "rule", "output"]),
-    parse_value("1"),
-  )
+  assert_eq(test_at(result, ["rules", "1", "rule", "output"]), parse_value("1"))
 }
 
 ///|
@@ -3560,7 +3293,6 @@ test "merge rejects unknown strategy and empty sets" {
   }
   assert_true(bad)
 }
-
 
 ///|
 fn matrix_rules() -> Value raise {
@@ -3582,17 +3314,11 @@ test "matrix flags multi-match records" {
   assert_eq(test_at(result, ["agreements"]), parse_value("1"))
   assert_eq(test_at(result, ["disagreements"]), parse_value("1"))
   assert_eq(test_at(result, ["rows", "0", "agree"]), parse_value("false"))
-  assert_eq(
-    test_at(result, ["rows", "0", "first"]),
-    parse_value("\"senior\""),
-  )
+  assert_eq(test_at(result, ["rows", "0", "first"]), parse_value("\"senior\""))
   assert_eq(test_at(result, ["rows", "0", "unique"]), parse_value("null"))
   assert_eq(test_at(result, ["rows", "0", "all_count"]), parse_value("2"))
   assert_eq(test_at(result, ["rows", "1", "agree"]), parse_value("true"))
-  assert_eq(
-    test_at(result, ["rows", "1", "unique"]),
-    parse_value("\"adult\""),
-  )
+  assert_eq(test_at(result, ["rows", "1", "unique"]), parse_value("\"adult\""))
 }
 
 ///|
@@ -3613,7 +3339,10 @@ test "matrix single record form" {
   let result = run(
     record([
       ("operation", String("matrix")),
-      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":\"hit\"}]")),
+      (
+        "rules",
+        parse_value("[{\"id\":\"a\",\"when\":\"x > 1\",\"output\":\"hit\"}]"),
+      ),
       ("facts", parse_value("{\"x\":9}")),
     ]),
   )
@@ -3621,14 +3350,18 @@ test "matrix single record form" {
   assert_eq(test_at(result, ["agreements"]), parse_value("1"))
 }
 
-
 ///|
 test "audit preserves facts echo and evidence" {
   let result = run(
     record([
       ("operation", String("audit")),
       ("mode", String("first")),
-      ("rules", parse_value("[{\"id\":\"a\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"}]")),
+      (
+        "rules",
+        parse_value(
+          "[{\"id\":\"a\",\"priority\":2,\"when\":\"age >= 18\",\"output\":\"adult\"}]",
+        ),
+      ),
       ("facts", parse_value("[{\"age\":30},{\"age\":9}]")),
     ]),
   )
@@ -3646,10 +3379,7 @@ test "audit preserves facts echo and evidence" {
     test_at(result, ["entries", "0", "matched", "0", "id"]),
     parse_value("\"a\""),
   )
-  assert_eq(
-    test_at(result, ["entries", "1", "decision"]),
-    parse_value("null"),
-  )
+  assert_eq(test_at(result, ["entries", "1", "decision"]), parse_value("null"))
 }
 
 ///|
@@ -3679,10 +3409,7 @@ test "audit digest changes with rules" {
       ("facts", parse_value("{\"x\":5}")),
     ]),
   )
-  assert_eq(
-    test_at(first, ["rule_digest"]),
-    test_at(again, ["rule_digest"]),
-  )
+  assert_eq(test_at(first, ["rule_digest"]), test_at(again, ["rule_digest"]))
 }
 
 ///|
@@ -3691,7 +3418,12 @@ test "audit carries budget and rule count" {
     record([
       ("operation", String("audit")),
       ("budget", Number(5000.0)),
-      ("rules", parse_value("[{\"id\":\"a\",\"when\":\"true\",\"output\":1},{\"id\":\"b\",\"when\":\"false\",\"output\":2}]")),
+      (
+        "rules",
+        parse_value(
+          "[{\"id\":\"a\",\"when\":\"true\",\"output\":1},{\"id\":\"b\",\"when\":\"false\",\"output\":2}]",
+        ),
+      ),
       ("facts", parse_value("{}")),
     ]),
   )

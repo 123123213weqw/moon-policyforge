@@ -54,10 +54,7 @@ fn lint_request(request : Value) -> Value raise {
             Array(errors) =>
               for err in errors {
                 check_section.push(
-                  record([
-                    ("rule", get(rule, "id")),
-                    ("detail", err),
-                  ]),
+                  record([("rule", get(rule, "id")), ("detail", err)]),
                 )
               }
             _ => ()
@@ -87,10 +84,7 @@ fn lint_request(request : Value) -> Value raise {
   match get(request, "versions") {
     Null =>
       sections.push(
-        record([
-          ("section", String("bundle")),
-          ("finding_count", Number(0.0)),
-        ]),
+        record([("section", String("bundle")), ("finding_count", Number(0.0))]),
       )
     _ => {
       let bundle_bad : Array[Value] = []
@@ -100,10 +94,7 @@ fn lint_request(request : Value) -> Value raise {
       } catch {
         error => {
           bundle_bad.push(
-            record([
-              ("rule", String("")),
-              ("detail", String(error.to_string())),
-            ]),
+            record([("rule", String("")), ("detail", String(error.to_string()))]),
           )
           false
         }
@@ -129,7 +120,7 @@ fn lint_request(request : Value) -> Value raise {
   }
 
   let count = findings.length()
-  let by_source : Map[String, Int] = Map([])
+  let by_source : Map[String, Int32] = Map([])
   for item in findings {
     let source = match get(item, "source") {
       String(name) => name
@@ -147,10 +138,12 @@ fn lint_request(request : Value) -> Value raise {
         ("source", String(source)),
         (
           "findings",
-          Number((match by_source.get(source) {
-            Some(n) => n
-            None => 0
-          }).to_double()),
+          Number(
+            (match by_source.get(source) {
+              Some(n) => n
+              None => 0
+            }).to_double(),
+          ),
         ),
       ]),
     )

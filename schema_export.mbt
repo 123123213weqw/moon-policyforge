@@ -94,9 +94,7 @@ fn export_schema_request(request : Value) -> Value raise {
     _ => raise input_error("E3009", "schema must be an object")
   }
   let document : Map[String, Value] = Map([])
-  document["$schema"] = String(
-    "https://json-schema.org/draft/2020-12/schema",
-  )
+  document["$schema"] = String("https://json-schema.org/draft/2020-12/schema")
   document["type"] = String("object")
   match root.get("properties") {
     Some(properties) => document["properties"] = properties

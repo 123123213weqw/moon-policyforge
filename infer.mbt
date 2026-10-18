@@ -16,11 +16,7 @@ fn walk_schema(
   match value {
     Object(fields) =>
       for key, item in fields {
-        let path = if prefix == "" {
-          key
-        } else {
-          prefix + "." + key
-        }
+        let path = if prefix == "" { key } else { prefix + "." + key }
         match item {
           Object(_) => {
             note_schema_type(observed, path, "object")
@@ -77,12 +73,7 @@ fn infer_request(request : Value) -> Value raise {
     if names.length() == 1 {
       schema[path] = String(names[0])
     } else {
-      mixed.push(
-        record([
-          ("path", String(path)),
-          ("types", strings(names)),
-        ]),
-      )
+      mixed.push(record([("path", String(path)), ("types", strings(names))]))
     }
   }
   record([

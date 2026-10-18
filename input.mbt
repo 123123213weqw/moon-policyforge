@@ -83,7 +83,7 @@ fn canonical(value : Value) -> String {
   match value {
     Object(fields) => {
       let keys = fields.keys().collect()
-      keys.sort()
+      keys.sort_by(stable_string_compare)
       "{" +
       keys
       .map(fn(k) { String(k).stringify() + ":" + canonical(fields[k]) })

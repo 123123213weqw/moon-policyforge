@@ -8,7 +8,7 @@ extern "js" fn read_input(path : String) -> String =
   #| }
 
 ///|
-extern "js" fn status(code : Int) -> Unit =
+extern "js" fn status(code : Int32) -> Unit =
   #| (code) => { process.exitCode = code; }
 
 ///|
@@ -16,20 +16,19 @@ extern "js" fn status(code : Int) -> Unit =
 /// and whether the request failed; the caller keeps streaming so one
 /// bad request never hides later results.
 fn process_line(request : Json) -> (String, Bool) {
-  try {
-    (@engine.execute(request).stringify(), false)
-  } catch {
-    error => (
-      Json::object({ "error": Json::string(error.to_string()) }).stringify(),
-      true,
-    )
+  (@engine.execute(request).stringify(), false) catch {
+    error =>
+      (
+        Json::object({ "error": Json::string(error.to_string()) }).stringify(),
+        true,
+      )
   }
 }
 
 ///|
 /// Streams newline-delimited JSON requests: one compact JSON result per
 /// input line, blank lines skipped. Returns the number of failed lines.
-fn run_jsonl(content : String) -> Int {
+fn run_jsonl(content : String) -> Int32 {
   let mut failures = 0
   let mut index = 0
   for line in content.split("\n") {
@@ -72,9 +71,7 @@ fn main {
     status(2)
   } else {
     let path = args[2]
-    let input = try {
-      read_input(path)
-    } catch {
+    let input = read_input(path) catch {
       error => {
         println(
           Json::object({ "error": Json::string(error.to_string()) }).stringify(),

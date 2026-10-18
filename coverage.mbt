@@ -12,9 +12,9 @@
 ///|
 priv struct RuleTally {
   id : String
-  mut hits : Int
-  mut errors : Int
-  mut evaluated : Int
+  mut hits : Int32
+  mut errors : Int32
+  mut evaluated : Int32
 }
 
 ///|
@@ -30,20 +30,20 @@ fn coverage_request(request : Value) -> Value raise {
   }
   let tallies : Array[RuleTally] = []
   for rule in rules {
-    tallies.push({ id: rule.id, hits: 0, errors: 0, evaluated: 0 })
+    tallies.push({ id: rule.id, hits: 0, errors: 0, evaluated: 0, })
   }
   let mut covered_records = 0
   let mut multi_records = 0
   let mut error_records = 0
-  let distributions : Map[String, Int] = Map([])
+  let distributions : Map[String, Int32] = Map([])
   for fact in facts {
     let hits : Array[String] = []
     let mut record_failed = false
     for i = 0; i < rules.length(); i = i + 1 {
       let state : Evaluation = { fuel: budget, trace: [], }
-      let outcome : Bool? = try {
-        Some(boolean(evaluate(rules[i].condition, fact, state)))
-      } catch {
+      let outcome : Bool? = Some(
+        boolean(evaluate(rules[i].condition, fact, state)),
+      ) catch {
         _ => {
           tallies[i].errors += 1
           record_failed = true
@@ -70,11 +70,7 @@ fn coverage_request(request : Value) -> Value raise {
     if hits.length() > 1 {
       multi_records += 1
     }
-    let pattern = if hits.is_empty() {
-      "none"
-    } else {
-      hits.join("+")
-    }
+    let pattern = if hits.is_empty() { "none" } else { hits.join("+") }
     match distributions.get(pattern) {
       Some(count) => distributions[pattern] = count + 1
       None => distributions[pattern] = 1
@@ -106,7 +102,7 @@ fn coverage_request(request : Value) -> Value raise {
       ]),
     )
   }
-  let patterns : Array[(String, Int)] = []
+  let patterns : Array[(String, Int32)] = []
   for kv in distributions {
     patterns.push((kv.0, kv.1))
   }

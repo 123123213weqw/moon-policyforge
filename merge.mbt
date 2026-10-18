@@ -67,12 +67,8 @@ fn merge_request(request : Value) -> Value raise {
                 origin[id] = set_name
                 conflicts[id] = true
               }
-              "report" => {
-                conflicts[id] = true
-              }
-              _ => {
-                conflicts[id] = true
-              }
+              "report" => conflicts[id] = true
+              _ => conflicts[id] = true
             }
           }
         }
@@ -110,10 +106,7 @@ fn merge_request(request : Value) -> Value raise {
     }
     let count = arr(get(set, "rules")).length()
     sources.push(
-      record([
-        ("name", String(set_name)),
-        ("rules", Number(count.to_double())),
-      ]),
+      record([("name", String(set_name)), ("rules", Number(count.to_double()))]),
     )
     set_idx2 += 1
   }

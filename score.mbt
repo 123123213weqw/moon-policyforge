@@ -13,8 +13,8 @@
 fn score_condition(
   id : String,
   condition : Expression,
-  soft_nodes : Int,
-  soft_depth : Int,
+  soft_nodes : Int32,
+  soft_depth : Int32,
 ) -> Value {
   let (nodes, depth) = condition.metrics()
   let paths : Map[String, Bool] = Map([])
@@ -55,7 +55,12 @@ fn score_condition(
     let penalty = if over * 2 > 40 { 40 } else { over * 2 }
     score -= penalty
     reasons.push(
-      String("wide: " + nodes.to_string() + " nodes over limit " + soft_nodes.to_string()),
+      String(
+        "wide: " +
+        nodes.to_string() +
+        " nodes over limit " +
+        soft_nodes.to_string(),
+      ),
     )
   }
   if depth > soft_depth {
@@ -63,18 +68,33 @@ fn score_condition(
     let penalty = if over * 5 > 30 { 30 } else { over * 5 }
     score -= penalty
     reasons.push(
-      String("deep: " + depth.to_string() + " levels over limit " + soft_depth.to_string()),
+      String(
+        "deep: " +
+        depth.to_string() +
+        " levels over limit " +
+        soft_depth.to_string(),
+      ),
     )
   }
   if distinct_paths > 4 {
-    let penalty = if (distinct_paths - 4) * 5 > 20 { 20 } else { (distinct_paths - 4) * 5 }
+    let penalty = if (distinct_paths - 4) * 5 > 20 {
+      20
+    } else {
+      (distinct_paths - 4) * 5
+    }
     score -= penalty
     reasons.push(
-      String("wide-facts: " + distinct_paths.to_string() + " distinct fact paths"),
+      String(
+        "wide-facts: " + distinct_paths.to_string() + " distinct fact paths",
+      ),
     )
   }
   if branch_count > 3 {
-    let penalty = if (branch_count - 3) * 4 > 16 { 16 } else { (branch_count - 3) * 4 }
+    let penalty = if (branch_count - 3) * 4 > 16 {
+      16
+    } else {
+      (branch_count - 3) * 4
+    }
     score -= penalty
     reasons.push(
       String("branchy: " + branch_count.to_string() + " boolean operators"),

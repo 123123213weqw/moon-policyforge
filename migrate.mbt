@@ -41,10 +41,7 @@ fn migrate_request(request : Value) -> Value raise {
                     return record([
                       ("version", String(head)),
                       ("program", Array(rules)),
-                      (
-                        "rule_count",
-                        Number(rules.length().to_double()),
-                      ),
+                      ("rule_count", Number(rules.length().to_double())),
                       ("applied_steps", Number(0.0)),
                     ])
                   }
@@ -57,8 +54,8 @@ fn migrate_request(request : Value) -> Value raise {
         let _ = head_program
         raise input_error("E4004", "bundle head program missing")
       }
-      // Pending steps exist: fold them in order.
-      _ => ()
+    // Pending steps exist: fold them in order.
+    _ => ()
   }
   let merged : Map[String, Value] = Map([])
   let mut applied = 0.0

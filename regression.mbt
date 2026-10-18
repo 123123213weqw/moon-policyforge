@@ -10,6 +10,7 @@
 /// rule edits: capture before, compare after, review every diff.
 
 ///|
+
 ///|
 /// Deterministic 32-bit FNV-1a over a byte sequence, rendered as 8
 /// hex characters. Self-implemented so the fingerprint is identical
@@ -77,10 +78,7 @@ fn snapshot_request(request : Value) -> Value raise {
           _ => String("error")
         }
         fingerprints.push(
-          record([
-            ("index", get(entry, "index")),
-            ("fingerprint", fp),
-          ]),
+          record([("index", get(entry, "index")), ("fingerprint", fp)]),
         )
       }
       record([
@@ -99,7 +97,7 @@ fn compare_request(request : Value) -> Value raise {
   if stored.length() == 0 {
     raise input_error("E3002", "compare needs a stored snapshot")
   }
-  let stored_by_index : Map[Int, String] = Map([])
+  let stored_by_index : Map[Int32, String] = Map([])
   for entry in stored {
     let index = num(get(entry, "index")).to_int()
     stored_by_index[index] = str(get(entry, "fingerprint"))

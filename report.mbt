@@ -25,20 +25,23 @@ fn render_scalar_short(value : Value) -> String {
 fn explain_lines(result : Value, mode : String) -> Array[String] raise {
   let lines : Array[String] = []
   lines.push("mode: " + mode)
-  lines.push(
-    "decision: " + render_scalar_short(get(result, "decision")),
-  )
+  lines.push("decision: " + render_scalar_short(get(result, "decision")))
   lines.push("conflict: " + get(result, "conflict").stringify())
   let conflict_ids = get(result, "conflict_ids")
   match conflict_ids {
     Array(items) =>
       if !items.is_empty() {
-        lines.push("conflicting rules: " + items.map(fn(v) {
-          match v {
-            String(s) => s
-            _ => ""
-          }
-        }).join(", "))
+        lines.push(
+          "conflicting rules: " +
+          items
+          .map(fn(v) {
+            match v {
+              String(s) => s
+              _ => ""
+            }
+          })
+          .join(", "),
+        )
       }
     _ => ()
   }

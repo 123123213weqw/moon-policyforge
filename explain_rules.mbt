@@ -94,9 +94,6 @@ fn explain_rules_request(request : Value) -> Value raise {
   ignore(index)
   record([
     ("explanations", Array(explanations)),
-    (
-      "rule_count",
-      Number(explanations.length().to_double()),
-    ),
+    ("rule_count", Number(explanations.length().to_double())),
   ])
 }

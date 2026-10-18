@@ -24,11 +24,10 @@ fn overlap(a : Array[String], b : Array[String]) -> Array[String] {
   shared
 }
 
-
 ///|
 /// Union-find helpers over a parent array. Roots are the fixed points
 /// of parent chains; union attaches one root to the other.
-fn uf_find(parent : Array[Int], x : Int) -> Int {
+fn uf_find(parent : Array[Int32], x : Int32) -> Int32 {
   let mut cur = x
   while parent[cur] != cur {
     cur = parent[cur]
@@ -37,7 +36,7 @@ fn uf_find(parent : Array[Int], x : Int) -> Int {
 }
 
 ///|
-fn uf_union(parent : Array[Int], rx : Int, ry : Int) -> Unit {
+fn uf_union(parent : Array[Int32], rx : Int32, ry : Int32) -> Unit {
   if rx != ry {
     parent[rx] = ry
   }
@@ -58,7 +57,7 @@ fn rule_graph_request(request : Value) -> Value raise {
   let ids : Array[String] = []
   let deps : Array[Array[String]] = []
   let seen : Map[String, Bool] = Map([])
-  let index_of : Map[String, Int] = Map([])
+  let index_of : Map[String, Int32] = Map([])
   let mut index = 0
   for item in rules {
     let id = str(get(item, "id"))
@@ -78,17 +77,17 @@ fn rule_graph_request(request : Value) -> Value raise {
     deps.push(sorted_paths(paths))
     index += 1
   }
-  let order : Array[Int] = []
+  let order : Array[Int32] = []
   for i = 0; i < ids.length(); i = i + 1 {
     order.push(i)
   }
   order.sort_by(fn(x, y) { stable_string_compare(ids[x], ids[y]) })
   let edges : Array[Value] = []
-  let union : Array[Int] = []
+  let union : Array[Int32] = []
   for i = 0; i < ids.length(); i = i + 1 {
     union.push(i)
   }
-  let path_count : Map[String, Int] = Map([])
+  let path_count : Map[String, Int32] = Map([])
   for path_list in deps {
     for path in path_list {
       match path_count.get(path) {
@@ -161,10 +160,15 @@ fn rule_graph_request(request : Value) -> Value raise {
     hubs.push(
       record([
         ("path", String(path)),
-        ("rule_count", Number((match path_count.get(path) {
-          Some(count) => count
-          None => 0
-        }).to_double())),
+        (
+          "rule_count",
+          Number(
+            (match path_count.get(path) {
+              Some(count) => count
+              None => 0
+            }).to_double(),
+          ),
+        ),
       ]),
     )
   }

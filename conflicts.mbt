@@ -32,13 +32,11 @@ priv struct Atom {
 }
 
 ///|
-fn decompose(
-  expr : Expression,
-  atoms : Array[Atom],
-) -> Bool {
+fn decompose(expr : Expression, atoms : Array[Atom]) -> Bool {
   // Returns false when the condition leaves the analyzable fragment.
   match expr {
-    Binary("&&", left, right) => decompose(left, atoms) && decompose(right, atoms)
+    Binary("&&", left, right) =>
+      decompose(left, atoms) && decompose(right, atoms)
     Binary(op, Variable(path), Literal(Number(value))) => {
       let bound = match op {
         ">" => Lower(value, false)
@@ -49,7 +47,7 @@ fn decompose(
         "!=" => NotEqual(value)
         _ => return false
       }
-      atoms.push({ path, bound })
+      atoms.push({ path, bound, })
       true
     }
     Binary(op2, Literal(Number(value)), Variable(path)) => {
@@ -63,7 +61,7 @@ fn decompose(
         "!=" => NotEqual(value)
         _ => return false
       }
-      atoms.push({ path, bound })
+      atoms.push({ path, bound, })
       true
     }
     Binary("||", _, _) => false
@@ -78,10 +76,8 @@ fn implies_single(a : Bound, b : Bound) -> Bool {
   // Does a (the implied-from atom) entail b? a is the tighter rule's
   // constraint; we ask whether a's constraint satisfies b's.
   match (a, b) {
-    (Lower(va, ia), Lower(vb, ib)) =>
-      va > vb || (va == vb && (ib || !ia))
-    (Upper(va, ia), Upper(vb, ib)) =>
-      va < vb || (va == vb && (ib || !ia))
+    (Lower(va, ia), Lower(vb, ib)) => va > vb || (va == vb && (ib || !ia))
+    (Upper(va, ia), Upper(vb, ib)) => va < vb || (va == vb && (ib || !ia))
     (Equal(va), Lower(vb, ib)) => va > vb || (va == vb && ib)
     (Equal(va), Upper(vb, ib)) => va < vb || (va == vb && ib)
     (Equal(va), Equal(vb)) => va == vb
@@ -142,10 +138,8 @@ fn ranges_disjoint(as_ : Array[Atom], bs : Array[Atom]) -> Bool {
           (Upper(va, ia), Equal(vb)) => va < vb || (va == vb && !ia)
           (Equal(va), Lower(vb, ib)) => va < vb || (va == vb && !ib)
           (Lower(va, ia), Equal(vb)) => va > vb || (va == vb && !ia)
-          (Lower(va, ia), Upper(vb, ib)) =>
-            va > vb || (va == vb && !(ia && ib))
-          (Upper(va, ia), Lower(vb, ib)) =>
-            va < vb || (va == vb && !(ia && ib))
+          (Lower(va, ia), Upper(vb, ib)) => va > vb || (va == vb && !(ia && ib))
+          (Upper(va, ia), Lower(vb, ib)) => va < vb || (va == vb && !(ia && ib))
           (_, _) => false
         }
         if hit {
@@ -176,7 +170,7 @@ fn conflicts_request(request : Value) -> Value raise {
     let condition = compile(str(get(item, "when")))
     let atoms : Array[Atom] = []
     let analyzable = decompose(condition, atoms)
-    compiled.push({ id, atoms, analyzable })
+    compiled.push({ id, atoms, analyzable, })
     index += 1
   }
   ignore(index)
@@ -214,7 +208,7 @@ fn conflicts_request(request : Value) -> Value raise {
       }
     }
   }
-  let counts : Map[String, Int] = Map([])
+  let counts : Map[String, Int32] = Map([])
   for relation in relations {
     let kind = match get(relation, "relation") {
       String(name) => name
@@ -225,7 +219,9 @@ fn conflicts_request(request : Value) -> Value raise {
       None => counts[kind] = 1
     }
   }
-  let kinds = ["disjoint", "equivalent", "a_subsumes_b", "b_subsumes_a", "unanalyzed"]
+  let kinds = [
+    "disjoint", "equivalent", "a_subsumes_b", "b_subsumes_a", "unanalyzed",
+  ]
   let summary : Array[Value] = []
   for kind in kinds {
     summary.push(
@@ -233,10 +229,12 @@ fn conflicts_request(request : Value) -> Value raise {
         ("relation", String(kind)),
         (
           "count",
-          Number((match counts.get(kind) {
-            Some(n) => n
-            None => 0
-          }).to_double()),
+          Number(
+            (match counts.get(kind) {
+              Some(n) => n
+              None => 0
+            }).to_double(),
+          ),
         ),
       ]),
     )

@@ -18,11 +18,7 @@ fn pick_at(value : Value, parts : Array[String]) -> Value? {
           None => return None
         }
       Array(items) => {
-        let index = try {
-          num(parse_value(part)).to_int()
-        } catch {
-          _ => return None
-        }
+        let index = num(parse_value(part)).to_int() catch { _ => return None }
         if index < 0 || index >= items.length() {
           return None
         }
@@ -35,7 +31,11 @@ fn pick_at(value : Value, parts : Array[String]) -> Value? {
 }
 
 ///|
-fn insert_at(target : Map[String, Value], parts : Array[String], value : Value) -> Unit {
+fn insert_at(
+  target : Map[String, Value],
+  parts : Array[String],
+  value : Value,
+) -> Unit {
   if parts.is_empty() {
     return
   }
@@ -56,7 +56,6 @@ fn insert_at(target : Map[String, Value], parts : Array[String], value : Value) 
     }
   }
 }
-
 
 ///|
 fn split_path(path : String) -> Array[String] {

@@ -18,9 +18,10 @@ fn collect_paths(expr : Expression, paths : Map[String, Bool]) -> Unit {
       collect_paths(left, paths)
       collect_paths(right, paths)
     }
-    Call(_, args) => for arg in args {
-      collect_paths(arg, paths)
-    }
+    Call(_, args) =>
+      for arg in args {
+        collect_paths(arg, paths)
+      }
   }
 }
 
@@ -44,7 +45,11 @@ fn analyze_rules(request : Value) -> Value raise {
   for item in rules {
     let id = match get(item, "id") {
       String(name) => name
-      _ => raise input_error("E4006", "rule at index " + index.to_string() + " needs an ID")
+      _ =>
+        raise input_error(
+          "E4006",
+          "rule at index " + index.to_string() + " needs an ID",
+        )
     }
     let condition = compile(str(get(item, "when")))
     let paths : Map[String, Bool] = Map([])
@@ -107,23 +112,20 @@ fn analyze_rules(request : Value) -> Value raise {
             record([
               ("rule", String(id)),
               ("kind", String("priority_tie")),
-              ("detail", String("decides by rule ID order: " + other_id + " vs " + id)),
+              (
+                "detail",
+                String("decides by rule ID order: " + other_id + " vs " + id),
+              ),
             ]),
           )
         }
         existing.push(
-          record([
-            ("id", String(id)),
-            ("priority", Number(priority)),
-          ]),
+          record([("id", String(id)), ("priority", Number(priority))]),
         )
       }
       None =>
         conditions[canonical] = [
-          record([
-            ("id", String(id)),
-            ("priority", Number(priority)),
-          ]),
+          record([("id", String(id)), ("priority", Number(priority))]),
         ]
     }
     report.push(
@@ -142,9 +144,6 @@ fn analyze_rules(request : Value) -> Value raise {
   record([
     ("rules", Array(report)),
     ("findings", Array(findings)),
-    (
-      "finding_count",
-      Number(findings.length().to_double()),
-    ),
+    ("finding_count", Number(findings.length().to_double())),
   ])
 }

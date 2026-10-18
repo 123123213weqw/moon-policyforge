@@ -19,10 +19,7 @@ fn compile_rules_request(request : Value) -> Value raise {
     let id = str(get(item, "id"))
     let priority = optional_num(get(item, "priority"), 0.0)
     if priority.is_nan() || priority.is_inf() {
-      raise input_error(
-        "E3004",
-        "priority for rule " + id + " must be finite",
-      )
+      raise input_error("E3004", "priority for rule " + id + " must be finite")
     }
     let condition = compile(str(get(item, "when")))
     let canonical_condition = condition.render()
@@ -104,13 +101,7 @@ fn program_rule(item : Value) -> Rule raise {
     }
     _ => raise input_error("E4007", "compute must be a string")
   }
-  {
-    id,
-    priority,
-    condition,
-    output: get(item, "output"),
-    computed,
-  }
+  { id, priority, condition, output: get(item, "output"), computed, }
 }
 
 ///|

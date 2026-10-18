@@ -1150,6 +1150,65 @@
     "error": false
   },
   {
+    "name": "ordering follows code units not length",
+    "request": {
+      "operation": "rule_graph",
+      "rules": [
+        {
+          "id": "n2",
+          "when": "x10 > 1"
+        },
+        {
+          "id": "n10",
+          "when": "x2 > 1 && y > 1"
+        },
+        {
+          "id": "n2x",
+          "when": "x2 > 2"
+        }
+      ]
+    },
+    "expected": {
+      "nodes/0": "n10",
+      "nodes/1": "n2",
+      "nodes/2": "n2x"
+    },
+    "error": false,
+    "note": "Every sorted identifier list (nodes, components, diff lists, canonical keys) follows UTF-16 code unit order, so n10 precedes n2; it never follows the length-first order of the toolchain's default string comparison."
+  },
+  {
+    "name": "rule set diff orders ids by code unit",
+    "request": {
+      "operation": "diff",
+      "old": [
+        {
+          "id": "r2",
+          "when": "a > 1"
+        }
+      ],
+      "new": [
+        {
+          "id": "r10",
+          "when": "a > 1"
+        },
+        {
+          "id": "r2",
+          "when": "a > 2"
+        }
+      ]
+    },
+    "expected": {
+      "added": [
+        "r10"
+      ],
+      "removed": [],
+      "changed": [
+        "r2"
+      ]
+    },
+    "error": false
+  },
+  {
     "name": "count_matches",
     "request": {
       "operation": "evaluate",

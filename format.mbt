@@ -7,7 +7,7 @@
 /// yields an equivalent tree, which enables round-trip guarantees.
 
 ///|
-fn Expression::precedence_of(self : Expression) -> Int {
+fn Expression::precedence_of(self : Expression) -> Int32 {
   match self {
     Literal(_) | Variable(_) | Call(_, _) => 100
     Unary(_, _) => 7
@@ -28,7 +28,7 @@ fn render_scalar(value : Value) -> String {
 }
 
 ///|
-fn Expression::render_prec(self : Expression, minimum : Int) -> String {
+fn Expression::render_prec(self : Expression, minimum : Int32) -> String {
   let text = self.render()
   if self.precedence_of() < minimum {
     "(" + text + ")"
@@ -64,7 +64,7 @@ fn Expression::render(self : Expression) -> String {
 
 ///|
 /// Structural metrics: total node count and maximum nesting depth.
-fn Expression::metrics(self : Expression) -> (Int, Int) {
+fn Expression::metrics(self : Expression) -> (Int32, Int32) {
   match self {
     Literal(_) | Variable(_) => (1, 1)
     Unary(_, operand) => {
