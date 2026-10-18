@@ -5,6 +5,7 @@ Every validation script is runnable from a clean checkout after `moon build --ta
 | Script | What it proves |
 | --- | --- |
 | `check.mjs` | The 101 JSON fixtures in `tests/cases.json` decide identically through the real Node CLI. |
+| `fixtures.py` | Regenerates `fixtures_wbtest.mbt` from `tests/cases.json`, so the same fixtures also run as white-box tests on wasm, wasm-gc and native; `--check` fails when out of date. |
 | `jsonl_check.mjs` | `.jsonl` streaming isolates failures per line, skips blanks, stays compact, and exits nonzero; stdin stays single-request. |
 | `smoke.mjs` | A 36-check executable walk over the operation set, the compile-run loop, quantifiers, pick, AST interchange and coded errors. |
 | `reference.py` | An independent arithmetic oracle: 40 precedence and negative-number expressions against Python's own evaluator. |
