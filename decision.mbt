@@ -13,7 +13,7 @@ fn load_rules(source : Value) -> Array[Rule] raise {
   let rules : Array[Rule] = []
   for item in arr(source) {
     let id = str(get(item, "id"))
-    if ids.contains(id) {
+    if id == "" || ids.contains(id) {
       raise input_error("E4001", "duplicate rule ID: " + id)
     }
     ids[id] = true
@@ -107,7 +107,18 @@ fn decide(
 
 ///|
 pub fn run(request : Value) -> Value raise {
+  if get(request, "operation") == String("replay_versions") {
+    return replay_versions_request(request)
+  }
   let operation = optional_str(get(request, "operation"), "decide")
+  if operation == "decide" || operation == "evaluate" {
+    let requested = optional_num(get(request, "budget"), 10000.0)
+    if requested < 1.0 ||
+      requested > 1000000.0 ||
+      requested.floor() != requested {
+      raise input_error("E3007", "budget must be a bounded positive integer")
+    }
+  }
   if operation == "optimize" {
     return optimize_request(request)
   }
@@ -236,6 +247,8 @@ pub fn run(request : Value) -> Value raise {
     ])
   }
   if operation == "diff" {
+    ignore(load_rules(get(request, "old")))
+    ignore(load_rules(get(request, "new")))
     let old_rules : Map[String, Value] = Map([])
     let new_rules : Map[String, Value] = Map([])
     for r in arr(get(request, "old")) {

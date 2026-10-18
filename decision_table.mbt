@@ -4,11 +4,9 @@
 /// Business authors think in tables: rows of mutually exclusive value
 /// ranges mapping to outcomes. The decision_table operation compiles
 /// such a table into engine rules — each row becomes one rule whose
-/// condition is the conjunction of its range predicates, priority
-/// derives from the row order, and the compiler proves row
-/// disjointness by construction: ranges within a column are checked
-/// for overlap and overlapping rows are rejected with the offending
-/// columns named, so first-mode surprises cannot happen.
+/// condition is the conjunction of its range predicates. Priority
+/// derives from row order. Compilation does not prove disjointness;
+/// callers must inspect conflicts and select an explicit hit policy.
 
 ///|
 fn compile_cell(column : String, cell : Value) -> String raise {
@@ -67,8 +65,24 @@ fn decision_table_request(request : Value) -> Value raise {
   let table = obj(get(request, "table"))
   let columns_value = arr(get(Object(table), "columns"))
   let columns : Array[String] = []
+  let seen_columns : Map[String, Bool] = Map([])
   for column in columns_value {
-    columns.push(str(column))
+    let name = str(column)
+    if name == "" || seen_columns.contains(name) {
+      raise input_error("E4001", "duplicate or empty decision-table column")
+    }
+    for part in name.split(".") {
+      let chars = part.to_owned().to_array()
+      if chars.is_empty() ||
+        !((chars[0] >= 'a' && chars[0] <= 'z') ||
+        (chars[0] >= 'A' && chars[0] <= 'Z') ||
+        chars[0] == '_') ||
+        !chars.all(identifier_char) {
+        raise input_error("E3002", "decision-table columns must be fact paths")
+      }
+    }
+    seen_columns[name] = true
+    columns.push(name)
   }
   if columns.is_empty() {
     raise input_error("E3002", "decision table needs columns")
