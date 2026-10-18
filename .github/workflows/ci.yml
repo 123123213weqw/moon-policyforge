@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      registry_version:
+        description: 'Registry version to consume from mooncakes.io (zero-major)'
+        required: true
 permissions:
   contents: read
 jobs:
@@ -38,3 +43,14 @@ jobs:
       - run: moon info && git diff --exit-code -- '*.mbti'
       - run: moon build --target js
       - run: node scripts/verify.mjs
+  package:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: hustcer/setup-moonbit@1522f9aef02a8ca0187dfc00a41f5dd6b16750f7
+      - run: moon update
+      - run: sh scripts/consume.sh "${{ github.event.inputs.registry_version }}"

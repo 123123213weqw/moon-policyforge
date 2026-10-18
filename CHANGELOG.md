@@ -6,6 +6,11 @@
 
 - Sorted identifier lists and canonical keys follow UTF-16 code unit order again on the 2026-10 toolchain, whose default string comparison orders by length first.
 
+### Added
+
+- `scripts/stats.py` regenerates the source-statistics table (`PROJECT_STATS.md` refreshed to 1.0.0 numbers: 206 white-box tests, 101 CLI fixtures, 36 dispatched operations).
+- `scripts/consume.sh` verifies the published package from a fresh module by registry version; a `package` CI job runs it on demand.
+
 ### Changed
 
 - The package builds with `moon check --deny-warn` on the 2026-10 toolchain: deprecated string and integer APIs replaced, effect-inferred closures rewritten as arrow functions, ambiguous `{}` map literals made explicit, internal types marked `priv`, the reserved word `member` renamed, dead code and unused accumulators removed, and trait promotions for `InputError` follow the moonbitlang/core policy (`extends.mbt`). `InputError` prints its bare message (`E3002 expected array`) instead of the `InputError(...)` wrapper.
