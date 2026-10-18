@@ -2,12 +2,12 @@
 
 [![CI](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml/badge.svg)](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml)
 
-Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Thirty-two operations, four backends, 206 white-box tests, 96 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
+Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Thirty-six operations, four backends, 206 white-box tests, 101 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
-- Package: `123123213weqw/moon_policyforge@0.8.0`
+- Package: `123123213weqw/moon_policyforge` on mooncakes.io (registry versions are listed in CHANGELOG.md)
 - License: Apache-2.0
-- Release scope: **0.8.0**. The broader competition proposal in `docs/proposal.md` is a reference design, not a claim that every planned capability is implemented.
+- Release scope: **1.0.0 complete implementation** of the scope defined in `docs/proposal.md`: the three scenarios run end to end, the acceptance checks (independent reference evaluation, 100k-fact statistical agreement, per-decision explanation chains, failure validation) are executable, and the remaining limits are listed in [docs/boundaries.md](docs/boundaries.md).
 
 ## Implemented
 
@@ -28,8 +28,10 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 
 ## Library use
 
+mooncakes.io currently accepts only zero-major versions (`moon publish` rejects anything else with "In this very early stage, the major version must be '0'"), so repository releases and registry versions are numbered separately. The registry version corresponding to each repository release is recorded in [CHANGELOG.md](CHANGELOG.md); `0.1.0` on the registry is the initial implementation.
+
 ```sh
-moon add 123123213weqw/moon_policyforge@0.8.0
+moon add 123123213weqw/moon_policyforge@REGISTRY_VERSION
 ```
 
 In the consumer's `moon.pkg`:

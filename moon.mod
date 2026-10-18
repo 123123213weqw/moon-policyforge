@@ -1,6 +1,6 @@
 name = "123123213weqw/moon_policyforge"
 
-version = "0.8.0"
+version = "1.0.0"
 
 readme = "README.md"
 

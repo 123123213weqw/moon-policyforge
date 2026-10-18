@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-10-18
+
+Complete implementation of the proposed scope: the three scenarios run end to end, the acceptance checks are executable (independent reference evaluation, 100k-fact statistical agreement, per-decision explanation chains, failure validation), and the release builds warning-free on the 2026-10 toolchain on all four backends.
+
+Registry version: not yet published. mooncakes.io requires `0.x.y` version numbers, so this release needs a zero-major registry number; `0.1.0` on the registry is the initial implementation from the planning stage.
 
 ### Fixed
 

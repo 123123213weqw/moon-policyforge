@@ -39,8 +39,14 @@ GitHub：https://github.com/123123213weqw/moon-policyforge公开仓库，拟用 
 本项目属于第 1 轮：先完成模型与接口，再交付可运行的核心链路和三个场景，随后完成规模验证、失败路径、当前提交的 CI 与公开包独立消费验证。主要取舍是让统一核心能力服务多个场景，同时将运行环境和暂不支持的语义写清；完成状态以实际源码和验证记录更新。目标截止日期为 2026-10-31，进度以实际里程碑为准。
 
 
-## 已完成版本与原方案的区别
+## 已完成版本与原方案的区别 (completed version versus the plan)
 
-公开仓库：https://github.com/123123213weqw/moon-policyforge
+Public repository: https://github.com/123123213weqw/moon-policyforge
 
-当前为 0.1.0 初始实现。上文规模和高级功能属于参考方案；实际已实现功能、测试命令和限制以 README、docs/boundaries.md 为准。不能把规划代码量、用户案例和性能目标写成已完成结果。
+**Current release: 1.0.0 (2026-10-18), the complete implementation of the proposed scope.** The sections above are the original proposal text from the planning stage and are kept unchanged for reference; the facts below describe what is actually delivered.
+
+- The three usage scenarios (approval admission, tiered discount, data-quality gating) exist as executable fixtures under `examples/`, and the streaming pipeline and browser demo extend them beyond the proposal.
+- The acceptance checks are executable: independent Python oracles for arithmetic and evaluation, two differential fuzzers (500 expressions and 120 rule sets per run) that agree on values and error codes, a 100,000-fact scale check whose decision statistics match a plain-Python oracle, explanation chains that attribute every decision to its matched rule, and failure validation covering illegal types, missing fields, conflict strategies, resource limits and illegal references through a coded E1xxx-E4xxx taxonomy.
+- Deliverables are in the repository: public MoonBit source, library interface, CLI, the scenarios with their input sources, 206 white-box tests plus 101 CLI fixtures and a nine-stage verification ladder, CI for four backends with warnings denied, installation and usage documentation, design and boundary documents, source statistics (`scripts/stats.py`, snapshot in PROJECT_STATS.md) and independent consumption verification of the published package (`scripts/consume.sh`).
+- The source line-count range in the proposal was an internal planning estimate; it is not an acceptance threshold and is not reported as a result. `scripts/stats.py` reports the actual numbers.
+- Not done and not claimed: general scripting, external code plugins, a remote policy service, or a full static type inference — the remaining limits are listed in `docs/boundaries.md`.
