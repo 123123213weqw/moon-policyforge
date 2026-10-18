@@ -8,16 +8,15 @@
 /// intermediate results through the standard evaluator.
 
 ///|
-struct MetricSpec {
+priv struct MetricSpec {
   name : String
   op : String
   expr : Expression?
 }
 
 ///|
-struct GroupAcc {
+priv struct GroupAcc {
   key_value : Value
-  key_canonical : String
   mut count : Int32
   sums : Map[String, Double]
   mins : Map[String, Double]
@@ -174,7 +173,7 @@ fn aggregate_request(request : Value) -> Value raise {
   for fact in facts {
     let state : Evaluation = { fuel: budget, trace: [], }
     let key_value = evaluate(key_expr, fact, state) catch {
-      error => {
+      _ => {
         record_errors += 1
         continue
       }
@@ -185,7 +184,6 @@ fn aggregate_request(request : Value) -> Value raise {
       None => {
         let fresh : GroupAcc = {
           key_value,
-          key_canonical,
           count: 0,
           sums: Map([]),
           mins: Map([]),
@@ -206,7 +204,7 @@ fn aggregate_request(request : Value) -> Value raise {
             let value = evaluate(expr, fact, state)
             group.record_number(spec, num(value))
           } catch {
-            error => {
+            _ => {
               group.metric_errors += 1
               record_errors += 1
             }

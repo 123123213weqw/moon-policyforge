@@ -1,7 +1,16 @@
 ///|
 pub(all) suberror InputError {
   InputError(String)
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+/// Errors print their bare message (`E3002 expected array`), so CLI output
+/// and reports never carry the constructor wrapper.
+pub impl Show for InputError with fn output(self, logger) {
+  match self {
+    InputError(message) => logger.write_string(message)
+  }
+}
 
 ///|
 fn get(value : Value, key : String) -> Value {
@@ -61,7 +70,7 @@ fn optional_num(value : Value, fallback : Double) -> Double raise InputError {
 
 ///|
 fn record(fields : Array[(String, Value)]) -> Value {
-  let result : Map[String, Value] = {}
+  let result : Map[String, Value] = Map([])
   for (key, value) in fields {
     result[key] = value
   }
@@ -75,7 +84,7 @@ fn strings(items : Array[String]) -> Value {
 
 ///|
 fn string_list(value : Value) -> Array[String] raise InputError {
-  arr(value).map(fn(item) { str(item) })
+  arr(value).map(item => str(item))
 }
 
 ///|

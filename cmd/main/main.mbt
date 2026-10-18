@@ -33,7 +33,7 @@ fn run_jsonl(content : String) -> Int32 {
   let mut index = 0
   for line in content.split("\n") {
     index += 1
-    let text = line.trim().to_string()
+    let text = line.trim().to_owned()
     if text == "" {
       continue
     }
@@ -71,15 +71,7 @@ fn main {
     status(2)
   } else {
     let path = args[2]
-    let input = read_input(path) catch {
-      error => {
-        println(
-          Json::object({ "error": Json::string(error.to_string()) }).stringify(),
-        )
-        status(1)
-        return
-      }
-    }
+    let input = read_input(path)
     if is_jsonl_path(path) {
       let failures = run_jsonl(input)
       if failures > 0 {

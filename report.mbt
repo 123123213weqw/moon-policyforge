@@ -13,7 +13,7 @@ fn render_scalar_short(value : Value) -> String {
     other => {
       let text = other.stringify()
       if text.length() > 40 {
-        text.substring(start=0, end=37).to_string() + "..."
+        text[0:37].to_owned() + "..."
       } else {
         text
       }
@@ -22,7 +22,7 @@ fn render_scalar_short(value : Value) -> String {
 }
 
 ///|
-fn explain_lines(result : Value, mode : String) -> Array[String] raise {
+fn explain_lines(result : Value, mode : String) -> Array[String] {
   let lines : Array[String] = []
   lines.push("mode: " + mode)
   lines.push("decision: " + render_scalar_short(get(result, "decision")))

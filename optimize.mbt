@@ -92,16 +92,3 @@ fn optimize_request(request : Value) -> Value raise {
     ("savings_percent", Number(savings)),
   ])
 }
-
-///|
-/// Evaluates an expression on the optimized tree. Values and error
-/// classes match the unoptimized evaluation; steps and traces shrink.
-fn evaluate_optimized(
-  source : String,
-  facts : Value,
-  budget : Int32,
-) -> Value raise {
-  let optimized = optimize_expr(compile(source))
-  let state : Evaluation = { fuel: budget, trace: [], }
-  evaluate(optimized, facts, state)
-}

@@ -81,7 +81,7 @@ fn explain_rules_request(request : Value) -> Value raise {
         break
       }
     }
-    let capitalized = upper_prefix + sentence.substring(start=cut).to_string()
+    let capitalized = upper_prefix + sentence[cut:].to_owned()
     explanations.push(
       record([
         ("id", String(id)),

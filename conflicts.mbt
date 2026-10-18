@@ -81,11 +81,10 @@ fn implies_single(a : Bound, b : Bound) -> Bool {
     (Equal(va), Lower(vb, ib)) => va > vb || (va == vb && ib)
     (Equal(va), Upper(vb, ib)) => va < vb || (va == vb && ib)
     (Equal(va), Equal(vb)) => va == vb
-    (_, Equal(vb)) => false // range alone cannot entail an equality
+    (_, Equal(_)) => false // range alone cannot entail an equality
     (_, NotEqual(_)) => false // conservative: ranges do not entail neq
     (NotEqual(va), Lower(vb, _)) => va >= vb
     (NotEqual(va), Upper(vb, _)) => va <= vb
-    (NotEqual(_), NotEqual(_)) => false
     (_, _) => false
   }
 }

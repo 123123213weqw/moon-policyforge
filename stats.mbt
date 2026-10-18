@@ -45,18 +45,14 @@ fn stats_request(request : Value) -> Value raise {
   let with_compute : Array[Value] = []
   let priorities : Array[Double] = []
   let mut total_nodes = 0
-  let mut total_depth = 0
   let mut max_depth = 0
   let path_count : Map[String, Int32] = Map([])
   let fn_count : Map[String, Int32] = Map([])
-  let mut conditions = 0
   let mut computes = 0
   for item in rules {
     let condition = compile(str(get(item, "when")))
-    conditions += 1
     let (nodes, depth) = condition.metrics()
     total_nodes += nodes
-    total_depth += depth
     if depth > max_depth {
       max_depth = depth
     }
@@ -71,7 +67,6 @@ fn stats_request(request : Value) -> Value raise {
         let compute = compile(source)
         let (cn, cd) = compute.metrics()
         total_nodes += cn
-        total_depth += cd
         if cd > max_depth {
           max_depth = cd
         }

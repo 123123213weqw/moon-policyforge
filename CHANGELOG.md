@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Sorted identifier lists and canonical keys follow UTF-16 code unit order again on the 2026-10 toolchain, whose default string comparison orders by length first.
+
+### Changed
+
+- The package builds with `moon check --deny-warn` on the 2026-10 toolchain: deprecated string and integer APIs replaced, effect-inferred closures rewritten as arrow functions, ambiguous `{}` map literals made explicit, internal types marked `priv`, the reserved word `member` renamed, dead code and unused accumulators removed, and trait promotions for `InputError` follow the moonbitlang/core policy (`extends.mbt`). `InputError` prints its bare message (`E3002 expected array`) instead of the `InputError(...)` wrapper.
+- CI checks warnings as errors on all four backends, plus formatting and interface freshness.
 All notable changes are documented per release. The format follows Keep a Changelog; versions are the published package versions.
 
 ## 0.8.0

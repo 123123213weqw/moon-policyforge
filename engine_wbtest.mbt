@@ -1220,7 +1220,7 @@ test "explain line count matches text" {
     _ => ""
   }
   let count = test_at(result, ["line_count"])
-  let expected = text.split("\n").length().to_double()
+  let expected = text.split("\n").count().to_double()
   assert_eq(count, Number(expected))
 }
 
@@ -3170,7 +3170,7 @@ test "explain rules phrases comparisons naturally" {
       assert_true(text.contains("Age must be at least 18"))
       assert_true(text.contains("tier must equal"))
       assert_true(text.contains(") and ("))
-      assert_true(text.ends_with("."))
+      assert_true(text.has_suffix("."))
     }
     _ => assert_true(false)
   }

@@ -60,32 +60,3 @@ fn all_match(items : Array[Value]) -> Value raise {
   }
   Bool(all)
 }
-
-///|
-fn count_matches_expr(
-  args : Array[Expression],
-  facts : Value,
-  state : Evaluation,
-) -> Value raise {
-  if args.length() != 3 {
-    raise input_error(
-      "E2006", "count_matches takes (array, operator, threshold)",
-    )
-  }
-  let evaluated = args.map(fn(arg) { evaluate(arg, facts, state) })
-  match (evaluated[0], evaluated[1], evaluated[2]) {
-    (Array(items), String(op), Number(threshold)) =>
-      count_matches(items, threshold, op)
-    (_, _, _) =>
-      raise input_error("E2006", "count_matches needs (array, string, number)")
-  }
-}
-
-///|
-fn boolean_array(items : Array[Value], who : String) -> Array[Value] raise {
-  for item in items {
-    ignore(boolean(item))
-  }
-  let _ = who
-  items
-}

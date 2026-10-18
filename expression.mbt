@@ -8,7 +8,7 @@ pub(all) enum Expression {
 }
 
 ///|
-struct Parser {
+priv struct Parser {
   tokens : Array[String]
   mut position : Int32
 }
@@ -198,7 +198,7 @@ fn lookup(facts : Value, path : String) -> Value? {
   for part in path.split(".") {
     match value {
       Object(fields) =>
-        match fields.get(part.to_string()) {
+        match fields.get(part.to_owned()) {
           Some(v) => value = v
           None => return None
         }
@@ -209,7 +209,7 @@ fn lookup(facts : Value, path : String) -> Value? {
 }
 
 ///|
-struct Evaluation {
+priv struct Evaluation {
   mut fuel : Int32
   trace : Array[Value]
 }
@@ -289,7 +289,7 @@ fn evaluate(
     }
     Call("exists", [Variable(path)]) => Bool(lookup(facts, path) is Some(_))
     Call(name, args) => {
-      let values = args.map(fn(arg) { evaluate(arg, facts, state) })
+      let values = args.map(arg => evaluate(arg, facts, state))
       match (name, values) {
         ("len", [String(s)]) => Number(s.char_length().to_double())
         ("len", [Array(a)]) => Number(a.length().to_double())
@@ -298,7 +298,7 @@ fn evaluate(
         ("contains", [Array(a), v]) => Bool(a.contains(v))
         ("lower", [String(s)]) => String(s.to_lower())
         ("upper", [String(s)]) => String(s.to_upper())
-        ("trim", [String(s)]) => String(s.trim().to_string())
+        ("trim", [String(s)]) => String(s.trim().to_owned())
         ("starts_with", [String(s), String(prefix)]) =>
           Bool(s.has_prefix(prefix))
         ("ends_with", [String(s), String(suffix)]) => Bool(s.has_suffix(suffix))
@@ -311,7 +311,7 @@ fn evaluate(
           if start < 0 || end > len || start > end {
             raise input_error("E2008", "substring out of bounds")
           }
-          String(s.substring(start~, end~).to_string())
+          String(s[start:end].to_owned())
         }
         ("abs", [Number(n)]) => Number(n.abs())
         ("floor", [Number(n)]) => Number(n.floor())

@@ -87,7 +87,7 @@ fn export_schema_request(request : Value) -> Value raise {
         let kind = str(value)
         let segments : Array[String] = []
         for view in path.split(".") {
-          segments.push(view.to_string())
+          segments.push(view.to_owned())
         }
         insert_schema_node(root, segments, kind)
       }

@@ -61,7 +61,7 @@ fn insert_at(
 fn split_path(path : String) -> Array[String] {
   let parts : Array[String] = []
   for view in path.split(".") {
-    parts.push(view.to_string())
+    parts.push(view.to_owned())
   }
   parts
 }

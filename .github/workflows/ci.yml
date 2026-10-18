@@ -20,6 +20,7 @@ jobs:
       - uses: hustcer/setup-moonbit@1522f9aef02a8ca0187dfc00a41f5dd6b16750f7
       - run: moon version --all
       - run: moon update
+      - run: moon check --deny-warn --target ${{ matrix.target }}
       - run: moon test --target ${{ matrix.target }}
   integration:
     runs-on: ubuntu-latest
@@ -33,5 +34,7 @@ jobs:
           python-version: '3.12'
       - uses: hustcer/setup-moonbit@1522f9aef02a8ca0187dfc00a41f5dd6b16750f7
       - run: moon update
+      - run: moon fmt --check
+      - run: moon info && git diff --exit-code -- '*.mbti'
       - run: moon build --target js
       - run: node scripts/verify.mjs

@@ -19,11 +19,12 @@ pub fn run(Value) -> Value raise
 // Errors
 pub(all) suberror InputError {
   InputError(String)
-} derive(Eq, Show)
+} derive(Eq)
+pub fn InputError::equal(Self, Self) -> Bool
+pub fn InputError::to_string(Self) -> String
+pub impl Show for InputError
 
 // Types and methods
-type Evaluation
-
 pub(all) enum Expression {
   Literal(Value)
   Variable(String)
@@ -31,10 +32,6 @@ pub(all) enum Expression {
   Binary(String, Expression, Expression)
   Call(String, Array[Expression])
 }
-
-type Parser
-
-type Rule
 
 pub(all) enum Value {
   Null
@@ -44,8 +41,11 @@ pub(all) enum Value {
   Array(Array[Value])
   Object(Map[String, Value])
 } derive(Eq, @debug.Debug)
+pub fn Value::equal(Self, Self) -> Bool
+pub fn Value::not_equal(Self, Self) -> Bool
 pub fn Value::stringify(Self) -> String
 pub fn Value::to_json(Self) -> Json
+pub fn Value::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

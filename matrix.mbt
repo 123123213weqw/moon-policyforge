@@ -10,7 +10,7 @@
 
 ///|
 fn matrix_request(request : Value) -> Value raise {
-  let rules = arr(get(request, "rules"))
+  ignore(arr(get(request, "rules"))) // validate the rule array up front
   let facts = match get(request, "facts") {
     Array(items) => items
     other => [other]

@@ -17,7 +17,7 @@ fn audit_request(request : Value) -> Value raise {
   let mut digest = 0x811c9dc5U
   let prime = 0x01000193U
   for ch in rule_digest_source {
-    digest = (digest ^ (ch.to_int() & 0xFF).to_uint()) * prime
+    digest = (digest ^ (ch.to_int() & 0xFF).reinterpret_as_uint()) * prime
   }
   let digest_text = digest.to_string(radix=16)
   let budget = optional_num(get(request, "budget"), 10000.0)

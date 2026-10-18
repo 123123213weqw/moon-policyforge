@@ -20,16 +20,12 @@ fn compile_cell(column : String, cell : Value) -> String raise {
       for op in operators {
         if text.has_prefix(op) {
           matched = op
-          rest = text
-            .substring(start=op.length())
-            .to_string()
-            .trim()
-            .to_string()
+          rest = text[op.length():].to_owned().trim().to_owned()
           break
         }
       }
       if matched == "" {
-        rest = text.trim().to_string()
+        rest = text.trim().to_owned()
         matched = "=="
       }
       let literal : Value? = Some(parse_value(rest)) catch { _ => None }

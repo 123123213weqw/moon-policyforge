@@ -47,7 +47,7 @@ fn note_schema_type(
 }
 
 ///|
-fn infer_request(request : Value) -> Value raise {
+fn infer_request(request : Value) -> Value {
   let facts = match get(request, "facts") {
     Array(items) => items
     other => [other]

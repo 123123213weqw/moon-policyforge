@@ -13,7 +13,7 @@
 fn split_all(text : String, separator : String) -> Array[String] {
   let parts : Array[String] = []
   for view in text.split(separator) {
-    parts.push(view.to_string())
+    parts.push(view.to_owned())
   }
   parts
 }
@@ -46,7 +46,7 @@ fn expand_template(
       out += "{{" + tail
       break
     }
-    let key = tail_parts[0].trim().to_string()
+    let key = tail_parts[0].trim().to_owned()
     match params.get(key) {
       Some(value) => {
         // Expressions need JSON literals (strings quoted); plain text

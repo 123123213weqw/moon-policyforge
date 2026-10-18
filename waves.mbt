@@ -50,8 +50,8 @@ fn wave_request(request : Value) -> Value raise {
             (String(aid), String(bid)) => {
               let mut has_a = false
               let mut has_b = false
-              for member in member_values {
-                match member {
+              for entry in member_values {
+                match entry {
                   String(name) => {
                     if name == aid {
                       has_a = true
@@ -83,8 +83,8 @@ fn wave_request(request : Value) -> Value raise {
       _ => ()
     }
     let names : Array[String] = []
-    for member in members {
-      match member {
+    for entry in members {
+      match entry {
         String(name) => names.push(name)
         _ => ()
       }

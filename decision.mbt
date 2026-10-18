@@ -1,5 +1,5 @@
 ///|
-struct Rule {
+priv struct Rule {
   id : String
   priority : Double
   condition : Expression
@@ -9,7 +9,7 @@ struct Rule {
 
 ///|
 fn load_rules(source : Value) -> Array[Rule] raise {
-  let ids : Map[String, Bool] = {}
+  let ids : Map[String, Bool] = Map([])
   let rules : Array[Rule] = []
   for item in arr(source) {
     let id = str(get(item, "id"))
@@ -82,7 +82,7 @@ fn decide(
   }
   let conflict = mode == "unique" && matched.length() > 1
   let conflict_ids : Array[String] = if conflict {
-    matched.map(fn(item) { str(get(item, "id")) })
+    matched.map(item => str(get(item, "id")))
   } else {
     []
   }
@@ -236,8 +236,8 @@ pub fn run(request : Value) -> Value raise {
     ])
   }
   if operation == "diff" {
-    let old_rules : Map[String, Value] = {}
-    let new_rules : Map[String, Value] = {}
+    let old_rules : Map[String, Value] = Map([])
+    let new_rules : Map[String, Value] = Map([])
     for r in arr(get(request, "old")) {
       old_rules[str(get(r, "id"))] = r
     }
