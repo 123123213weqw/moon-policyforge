@@ -3430,3 +3430,34 @@ test "audit carries budget and rule count" {
   assert_eq(test_at(result, ["budget"]), parse_value("5000"))
   assert_eq(test_at(result, ["rule_count"]), parse_value("2"))
 }
+
+///|
+test "flatten, pointer and canonical helpers" {
+  let value = parse_value(
+    "{\"a\":{\"b\":[1,{\"c\":true}],\"x/y\":\"slash\",\"empty\":{}},\"n\":null}",
+  )
+  let flat = value.flatten()
+  assert_eq(flat["/a/b/0"], Number(1.0))
+  assert_eq(flat["/a/x~1y"], String("slash"))
+  assert_eq(flat["/a/empty"], Object(Map([])))
+  assert_eq(flat.length(), 5)
+  assert_eq(value.pointer("/a/b/1/c"), Bool(true))
+  assert_eq(value.pointer("/a/x~1y"), String("slash"))
+  assert_eq(value.pointer(""), value)
+  let missing = try {
+    ignore(value.pointer("/a/nope"))
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(missing)
+  assert_eq(
+    value.canonical(),
+    "{\"a\":{\"b\":[1,{\"c\":true}],\"empty\":{},\"x/y\":\"slash\"},\"n\":null}",
+  )
+  assert_eq(parse_value("{\"b\":1,\"a\":2}").canonical(), "{\"a\":2,\"b\":1}")
+  assert_eq(
+    parse_value("{\"n10\":1,\"n2\":2}").canonical(),
+    "{\"n10\":1,\"n2\":2}",
+  )
+}

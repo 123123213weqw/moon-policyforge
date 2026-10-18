@@ -17,6 +17,7 @@ Registry version: not yet published. mooncakes.io requires `0.x.y` version numbe
 
 ### Added
 
+- Public helpers `Value::flatten` (leaf values keyed by JSON Pointer), `Value::pointer` (lookup by JSON Pointer) and `Value::canonical` (canonical JSON text) for library consumers.
 - `scripts/stats.py` regenerates the source-statistics table (`PROJECT_STATS.md` refreshed to 1.0.0 numbers: 206 white-box tests, 101 CLI fixtures, 36 dispatched operations).
 - `scripts/consume.sh` verifies the published package from a fresh module by registry version; a `package` CI job runs it on demand.
 

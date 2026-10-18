@@ -49,7 +49,7 @@ fn example(request : Json) -> Json raise {
 }
 ```
 
-`execute(Json) -> Json raise` is the standard JSON boundary. `from_json`, `Value::to_json`, and `run(Value) -> Value raise` provide a typed semantic value interface. Object ordering is not significant; numeric values use finite Double. Public domain functions are listed in `pkg.generated.mbti`.
+`execute(Json) -> Json raise` is the standard JSON boundary. `from_json`, `Value::to_json`, and `run(Value) -> Value raise` provide a typed semantic value interface; `Value::flatten` (leaf values keyed by JSON Pointer), `Value::pointer` (lookup by JSON Pointer) and `Value::canonical` (canonical JSON text) help consumers work with reports, and `digest(String) -> String` is the SHA-256 used for digests. Object ordering is not significant; numeric values use finite Double. Public domain functions are listed in `pkg.generated.mbti`.
 
 ## Static checking
 
