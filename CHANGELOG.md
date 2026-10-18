@@ -17,6 +17,7 @@ Registry version: not yet published. mooncakes.io requires `0.x.y` version numbe
 
 ### Added
 
+- Benchmarks re-recorded on the 2026-10 toolchain (docs/benchmarks.md); the 0.4.0 table is kept as history.
 - The 101 CLI fixtures now also run as generated white-box tests (`scripts/fixtures.py`), so they execute on wasm, wasm-gc and native and not only through Node; CI checks freshness.
 - Public helpers `Value::flatten` (leaf values keyed by JSON Pointer), `Value::pointer` (lookup by JSON Pointer) and `Value::canonical` (canonical JSON text) for library consumers.
 - `scripts/stats.py` regenerates the source-statistics table (`PROJECT_STATS.md` refreshed to 1.0.0 numbers: 206 white-box tests, 101 CLI fixtures, 36 dispatched operations).
