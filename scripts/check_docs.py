@@ -44,12 +44,21 @@ if not requests:
 executed = 0
 failures = 0
 expected_failures = 0
+findings_reports = 0
 for request in requests:
     result = subprocess.run(
         ["node", str(cli), "-"],
         input=json.dumps(request), capture_output=True, text=True, encoding="utf-8", timeout=120,
     )
     executed += 1
+    if result.returncode == 2:
+        # A completed report with findings (lint/compare) is a valid documented outcome.
+        try:
+            json.loads(result.stdout)
+            findings_reports += 1
+            continue
+        except ValueError:
+            pass
     if result.returncode != 0:
         output = (result.stdout or "").strip()
         if output.startswith('{"error"'):
@@ -64,6 +73,6 @@ for request in requests:
             print(f"FAIL unparseable success output for {json.dumps(request)[:120]}")
             failures += 1
 
-print(f"Documentation replay: {executed} documented requests, {expected_failures} documented errors, {failures} drift failures")
+print(f"Documentation replay: {executed} documented requests, {expected_failures} documented errors, {findings_reports} findings reports, {failures} drift failures")
 if failures:
     sys.exit(1)

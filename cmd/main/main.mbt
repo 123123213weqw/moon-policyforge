@@ -15,8 +15,31 @@ extern "js" fn status(code : Int32) -> Unit =
 /// Executes one parsed request. Returns the compact JSON result line
 /// and whether the request failed; the caller keeps streaming so one
 /// bad request never hides later results.
+
+///|
+/// True when a completed report carries findings: a top-level `ok: false`
+/// (lint, compare drift) or a non-empty `findings` array (lint, analyze).
+fn flagged(output : Json) -> Bool {
+  match output {
+    Json::Object(fields) =>
+      match fields.get("ok") {
+        Some(Json::False) => true
+        _ =>
+          match fields.get("findings") {
+            Some(Json::Array(items)) => !items.is_empty()
+            _ => false
+          }
+      }
+    _ => false
+  }
+}
+
+///|
 fn process_line(request : Json) -> (String, Bool) {
-  (@engine.execute(request).stringify(), false) catch {
+  try {
+    let output = @engine.execute(request)
+    (output.stringify(), flagged(output))
+  } catch {
     error =>
       (
         Json::object({ "error": Json::string(error.to_string()) }).stringify(),
@@ -27,7 +50,8 @@ fn process_line(request : Json) -> (String, Bool) {
 
 ///|
 /// Streams newline-delimited JSON requests: one compact JSON result per
-/// input line, blank lines skipped. Returns the number of failed lines.
+/// input line, blank lines skipped. Returns the number of lines that
+/// failed or carried findings.
 fn run_jsonl(content : String) -> Int32 {
   let mut failures = 0
   let mut index = 0
@@ -80,7 +104,12 @@ fn main {
     } else {
       try {
         let request = @json.parse(input)
-        println(@engine.execute(request).stringify(indent=2))
+        let output = @engine.execute(request)
+        println(output.stringify(indent=2))
+        // Exit codes: 0 clean report, 1 rejected request, 2 report with findings.
+        if flagged(output) {
+          status(2)
+        }
       } catch {
         error => {
           println(

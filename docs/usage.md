@@ -883,7 +883,7 @@ Expected result fields:
 
 ## JSONL streaming
 
-When the input path ends with `.jsonl`, the CLI processes newline-delimited requests: each non-empty line is one request, each line prints one compact JSON result, request failures become per-line `{"error": ...}` objects without stopping the stream, and the process exits nonzero if any line failed. Blank lines are skipped. Streaming is selected only by the file path suffix; `-` (stdin) always stays in single-request mode.
+When the input path ends with `.jsonl`, the CLI processes newline-delimited requests: each non-empty line is one request, each line prints one compact JSON result, request failures become per-line `{"error": ...}` objects without stopping the stream, and the process exits nonzero if any line failed or carried findings. Blank lines are skipped. Streaming is selected only by the file path suffix; `-` (stdin) always stays in single-request mode. Exit codes everywhere: 0 for a clean report, 1 after a rejected request (printed as `{"error": ...}`), and 2 for a completed report with findings — a top-level `ok: false` (lint, compare drift) or a non-empty `findings` array (lint, analyze) — so shells can gate on review-worthy output.
 
 ```sh
 node _build/js/debug/build/cmd/main/main.js requests.jsonl

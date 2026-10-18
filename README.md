@@ -24,7 +24,7 @@ moon run cmd/main --target js -- examples/discount-scenario.json
 node _build/js/debug/build/cmd/main/main.js examples/admission-scenario.json
 ```
 
-Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at most 16 MiB. Successful requests print one JSON result; invalid requests exit nonzero. The host runner is a separate process and does not edit the input request file.
+Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at most 16 MiB. The CLI prints one JSON result and exits 0 for a clean report, 2 for a completed report with findings (a top-level `ok: false` such as lint or compare drift, or a non-empty `findings` array), and 1 after printing `{"error": "..."}` for a rejected request; `.jsonl` streaming applies the same rule per line. The host runner is a separate process and does not edit the input request file.
 
 ## Library use
 

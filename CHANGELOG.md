@@ -12,6 +12,7 @@ Registry version: not yet published. mooncakes.io requires `0.x.y` version numbe
 
 ### Changed
 
+- The CLI exits 2 for a completed report with findings (top-level `ok: false` — lint, compare drift — or a non-empty `findings` array — lint, analyze) and 1 for a rejected request, in single-request and `.jsonl` streaming modes alike, so review gates work in shells. The CLI helper and the documentation replay treat exit 2 as a report.
 - Audit `rule_digest` and snapshot fingerprints use self-implemented SHA-256 (verified against the FIPS 180-4 vectors and Python's `hashlib`, exposed as `digest(String) -> String`) instead of 32-bit FNV-1a. The audit digest previously hashed only the low byte of each UTF-16 unit, and the snapshot encoder covered at most two-byte UTF-8, so non-BMP decision strings hashed wrong bytes. Digest values change format; earlier snapshots do not compare equal.
 
 ### Added
