@@ -12,20 +12,6 @@
 ///|
 
 ///|
-/// Deterministic 32-bit FNV-1a over a byte sequence, rendered as 8
-/// hex characters. Self-implemented so the fingerprint is identical
-/// across all four backends without external digest dependencies;
-/// collision risk at decision-snapshot counts is negligible.
-fn fnv1a32(bytes : Array[Byte]) -> String {
-  let mut h = 0x811c9dc5U
-  let prime = 0x01000193U
-  for b in bytes {
-    h = (h ^ b.to_uint()) * prime
-  }
-  h.to_string(radix=16)
-}
-
-///|
 fn fingerprint_of(result : Value) -> String raise {
   let matched_ids : Array[String] = []
   match get(result, "matched") {
@@ -41,19 +27,7 @@ fn fingerprint_of(result : Value) -> String raise {
   fingerprint["decision"] = get(result, "decision")
   fingerprint["matched"] = strings(matched_ids)
   fingerprint["conflict"] = Bool(conflict)
-  let canonical_text = canonical(Object(fingerprint))
-  let bytes : Array[Byte] = []
-  for ch in canonical_text {
-    let code = ch.to_int()
-    if code < 128 {
-      bytes.push(code.to_byte())
-    } else {
-      // two-byte UTF-8 is enough for the identifier and decimal space
-      bytes.push((0xC0 | (code >> 6)).to_byte())
-      bytes.push((0x80 | (code & 0x3F)).to_byte())
-    }
-  }
-  fnv1a32(bytes)
+  digest(canonical(Object(fingerprint)))
 }
 
 ///|

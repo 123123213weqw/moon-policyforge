@@ -1364,7 +1364,7 @@ Expected result fields:
 }
 ```
 
-`snapshot` fingerprints each record — decision, sorted matched IDs and conflict flag through canonical form into a self-implemented FNV-1a digest. `compare` re-decides against a stored snapshot and reports `added`, `removed` and `changed` records with before/after digests and `ok` true only when nothing moved. This is the regression gate for rule edits: capture before, compare after, review every diff.
+`snapshot` fingerprints each record — decision, sorted matched IDs and conflict flag through canonical form into a self-implemented SHA-256 digest. `compare` re-decides against a stored snapshot and reports `added`, `removed` and `changed` records with before/after digests and `ok` true only when nothing moved. This is the regression gate for rule edits: capture before, compare after, review every diff.
 
 ## template
 

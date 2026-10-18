@@ -10,6 +10,10 @@ Registry version: not yet published. mooncakes.io requires `0.x.y` version numbe
 
 - Sorted identifier lists and canonical keys follow UTF-16 code unit order again on the 2026-10 toolchain, whose default string comparison orders by length first.
 
+### Changed
+
+- Audit `rule_digest` and snapshot fingerprints use self-implemented SHA-256 (verified against the FIPS 180-4 vectors and Python's `hashlib`, exposed as `digest(String) -> String`) instead of 32-bit FNV-1a. The audit digest previously hashed only the low byte of each UTF-16 unit, and the snapshot encoder covered at most two-byte UTF-8, so non-BMP decision strings hashed wrong bytes. Digest values change format; earlier snapshots do not compare equal.
+
 ### Added
 
 - `scripts/stats.py` regenerates the source-statistics table (`PROJECT_STATS.md` refreshed to 1.0.0 numbers: 206 white-box tests, 101 CLI fixtures, 36 dispatched operations).

@@ -13,13 +13,7 @@
 fn audit_request(request : Value) -> Value raise {
   let mode = optional_str(get(request, "mode"), "first")
   let rules = arr(get(request, "rules"))
-  let rule_digest_source = canonical(get(request, "rules"))
-  let mut digest = 0x811c9dc5U
-  let prime = 0x01000193U
-  for ch in rule_digest_source {
-    digest = (digest ^ (ch.to_int() & 0xFF).reinterpret_as_uint()) * prime
-  }
-  let digest_text = digest.to_string(radix=16)
+  let rule_digest_text = digest(canonical(get(request, "rules")))
   let budget = optional_num(get(request, "budget"), 10000.0)
   let decided = run(
     record([
@@ -65,7 +59,7 @@ fn audit_request(request : Value) -> Value raise {
   record([
     ("engine", String("moon-policyforge")),
     ("mode", String(mode)),
-    ("rule_digest", String(digest_text)),
+    ("rule_digest", String(rule_digest_text)),
     ("rule_count", Number(rules.length().to_double())),
     ("budget", Number(budget)),
     ("record_count", Number(facts.length().to_double())),
