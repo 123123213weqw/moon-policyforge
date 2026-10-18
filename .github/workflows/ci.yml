@@ -43,6 +43,7 @@ jobs:
       - run: python -B scripts/fixtures.py --check
       - run: moon info && git diff --exit-code -- '*.mbti'
       - run: moon build --target js
+      - run: python -B scripts/followup_reference.py
       - run: node scripts/verify.mjs
   package:
     if: github.event_name == 'workflow_dispatch'

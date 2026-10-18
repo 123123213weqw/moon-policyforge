@@ -24,6 +24,7 @@ text = (root / "docs" / "usage.md").read_text(encoding="utf-8")
 blocks = re.findall(r"```json\n(.*?)```", text, re.S)
 
 operations = {
+    "replay_versions",
     "decide", "evaluate", "check", "serialize", "roundtrip", "aggregate",
     "infer", "analyze", "explain", "coverage", "rule_graph",
     "compile_rules", "run_program", "diff", "optimize",

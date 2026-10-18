@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — 2026-10-18
+
+Registry version: 0.10.0.
+
+保留公开最新版已有的决策表、冲突分析、静态检查、快照及验证能力，新增 replay_versions：同一组有唯一 ID 的事实分别执行旧、新规则，逐条报告决定、冲突、错误和命中集合的变化。区分样本等价与全局证明，报告漂移可供 CLI 门控。拒绝空规则 ID、diff 中重复身份、非整数执行预算及决策表列名注入；纠正编译决策表即证明互斥的说明。
+
 ## 1.0.0 — 2026-10-18
 
 Complete implementation of the proposed scope: the three scenarios run end to end, the acceptance checks are executable (independent reference evaluation, 100k-fact statistical agreement, per-decision explanation chains, failure validation), and the release builds warning-free on the 2026-10 toolchain on all four backends.

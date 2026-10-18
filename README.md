@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml/badge.svg)](https://github.com/123123213weqw/moon-policyforge/actions/workflows/ci.yml)
 
-Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Thirty-six operations, four backends, 206 white-box tests, 101 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
+Explainable rule decisions, implemented in MoonBit with a JSON CLI and reusable library API. Thirty-seven operations, four backends, 206 white-box tests, 101 CLI fixtures, two differential fuzz oracles and a 100k-fact scale check — all wired into one verification ladder (`node scripts/verify.mjs`).
 
 - Repository: [https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)
 - Package: `123123213weqw/moon_policyforge` on mooncakes.io (registry versions are listed in CHANGELOG.md)
@@ -31,7 +31,7 @@ Pass `-` to read a UTF-8 JSON request from stdin. A single request must be at mo
 mooncakes.io currently accepts only zero-major versions (`moon publish` rejects anything else with "In this very early stage, the major version must be '0'"), so repository releases and registry versions are numbered separately. The registry version corresponding to each repository release is recorded in [CHANGELOG.md](CHANGELOG.md); `0.1.0` on the registry is the initial implementation.
 
 ```sh
-moon add 123123213weqw/moon_policyforge@REGISTRY_VERSION
+moon add 123123213weqw/moon_policyforge@0.10.0
 ```
 
 In the consumer's `moon.pkg`:
@@ -83,10 +83,21 @@ node scripts/smoke.mjs
 node scripts/bench.mjs
 ```
 
-There are 96 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
+There are 107 checked fixture cases in `tests/cases.json`, executed both in MoonBit white-box tests and through the actual Node CLI. Independent reference checks use Python's standard library or separately written algorithms; `scripts/scale_check.py` re-decides 100,000 deterministic facts with a plain-Python oracle and asserts per-index agreement, hit-rule attribution through the explanation chain, and a deterministic hit distribution. Fixtures are synthetic and are not presented as production adoption evidence. New to the project? Start with the [tutorial](docs/tutorial.md). The module map lives in [docs/structure.md](docs/structure.md). Releases are summarized in the [changelog](CHANGELOG.md); validation scripts are catalogued in [docs/scripts.md](docs/scripts.md). Then see the [operation reference](docs/api.md), the [error taxonomy](docs/errors.md), [benchmarks](docs/benchmarks.md), [input and output examples](docs/usage.md) and [current boundaries](docs/boundaries.md).
 
 ## Current boundaries
 
 A custom bounded expression language. No arbitrary code execution, loops, user functions or external I/O. Runtime types are always checked at evaluation. A full static type inference is not included; the opt-in `check` operation reports what an optional caller-supplied schema proves, and unknown fact paths defer to runtime. Every input error carries a stable E-code prefix (see docs/errors.md). All matching rule outputs are evaluated even in first mode, and first selects the highest-priority match; equal priority uses rule ID order. Unique produces conflict and null decision on multiple matches, with the conflicting IDs in `conflict_ids`. Facts are caller supplied. Traces can include fact values, so redact sensitive facts before storing reports.
 
 See [source and dependency attribution](THIRD_PARTY.md). This release does not establish competition eligibility or organizer acceptance.
+
+
+## 2026-10-18 follow-up
+
+保留公开最新版已有的决策表、冲突分析、静态检查、快照及验证能力，新增 replay_versions：同一组有唯一 ID 的事实分别执行旧、新规则，逐条报告决定、冲突、错误和命中集合的变化。区分样本等价与全局证明，报告漂移可供 CLI 门控。拒绝空规则 ID、diff 中重复身份、非整数执行预算及决策表列名注入；纠正编译决策表即证明互斥的说明。
+
+新回放入口接收 decide 定义，不递归执行任意操作。样本回放不证明全输入空间等价；决策表编译本身不证明行互斥，同类项目也具备求值、解释或测试能力，不能把通用能力作为独有性证明。
+
+Repository release: 1.1.0; installable MoonCakes module: `123123213weqw/moon_policyforge@0.10.0`. Earlier repository 1.0.0 labels are retained as history; the module uses the registry-compatible zero-major sequence.
+
+Current source contains 316 MoonBit test declarations and 107 CLI fixtures (generated fixture tests are included in the declaration count). Run `python -B scripts/followup_reference.py` for independent follow-up oracles and `examples/followup-20261018.json` for the new scenario.

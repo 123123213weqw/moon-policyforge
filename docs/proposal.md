@@ -1,52 +1,103 @@
-# Moon PolicyForge 项目申报书
+# Moon PolicyForge 项目申报参考书
 
-项目负责人账号：123123213weqw。项目方向：通用工具库与规则执行。
-GitHub：https://github.com/123123213weqw/moon-policyforge公开仓库，拟用 `123123213weqw/moon-policyforge`。
-当前阶段：选题与架构规划；本文按立项阶段表述功能、交付和验收目标。
+## 可解释多规则决策与具名版本回放
 
-## 项目简介与通用价值
+账号：123123213weqw；主要语言：MoonBit；许可：Apache-2.0；更新日期：2026-10-18。  
+GitHub：[https://github.com/123123213weqw/moon-policyforge](https://github.com/123123213weqw/moon-policyforge)  
+仓库发行：1.1.0；公共模块：[123123213weqw/moon_policyforge@0.10.0](https://mooncakes.io/docs/123123213weqw/moon_policyforge@0.10.0)
 
-把声明式规则、输入事实、决策与解释链作为可用的通用决策系统。项目采用 MoonBit 实现核心处理能力，提供可复用库接口与命令行入口，使使用者能够把同一能力嵌入应用、离线处理或 CI 流程。适用范围通过不同用途的完整示例说明，并以输入、判断过程和可核验输出体现实际价值。
+本文供个人参考，按本次实际代码及边界编写。公开提交、CI、发布和独立安装结果另附交付核对表，不以材料修订代替主办方重新审核。
 
-## 核心功能
+## 一、项目职责与本次改进
 
-表达式词法与语法；类型检查；有界求值；决策表；规则优先级；冲突诊断；解释追踪；批量评估与版本比较。表达式语义有规范、错误模型与资源上限，不能只是条件函数集合。
+保留公开最新版已有的决策表、冲突分析、静态检查、快照及验证能力，新增 replay_versions：同一组有唯一 ID 的事实分别执行旧、新规则，逐条报告决定、冲突、错误和命中集合的变化。区分样本等价与全局证明，报告漂移可供 CLI 门控。拒绝空规则 ID、diff 中重复身份、非整数执行预算及决策表列名注入；纠正编译决策表即证明互斥的说明。
 
-## 三个完整使用场景
+已有核心能力继续保留，具体入口及完整使用方式见仓库 README 与 API 清单。本次对旧仓库先做版本同步，保留公开历史，不将此前已完成的功能重写为本轮新成果。
 
-1. 优惠计算：输入订单事实、折扣规则和互斥策略，计算适用优惠并处理多个规则同时命中；输出选中的规则、优惠结果和解释链，使业务人员能够复核定价决定。
+## 二、可复现输入及预期结果
 
-2. 应用准入判断：输入设备属性、申请类型及明确的准入条件，对事实作允许、拒绝或缺信息决策；输出命中依据和缺失字段，供上层流程处理，不替代认证系统。
+以下为新增固定夹具之一，输入与字段断言同时纳入测试。更多场景见 tests/cases.json 和 examples/；所有样本均为合成数据，不作为真实用户证据。
 
-3. 数据质量处置：输入记录质量指标和分级决策表，判断直接通过、人工复核或拒绝；输出逐条决定和规则版本，批量汇总命中分布，供数据流程选择后续处理分支。
+```json
+{
+  "operation": "replay_versions",
+  "old": {
+    "rules": [
+      {
+        "id": "pass",
+        "when": "score >= 50",
+        "output": "pass"
+      }
+    ],
+    "default": "review"
+  },
+  "new": {
+    "rules": [
+      {
+        "id": "pass",
+        "when": "score >= 60",
+        "output": "pass"
+      }
+    ],
+    "default": "review"
+  },
+  "cases": [
+    {
+      "id": "edge",
+      "facts": {
+        "score": 55
+      }
+    },
+    {
+      "id": "stable",
+      "facts": {
+        "score": 70
+      }
+    }
+  ]
+}
+```
 
-## 技术路线与工程实现
+预期结果字段：
 
-用解析器和类型检查器构建受限规则表达式，求值返回决策及解释轨迹；决策表和冲突策略显式定义，批处理共享已编译规则并限制资源消耗。核心逻辑采用有类型的数据结构、明确错误结果和可测试执行步骤；文件、网络或进程适配与核心处理分层。实现过程中用小规模确定性输入建立正确性基准，再使用真实场景和规模数据检查可用性。对外暴露稳定接口，避免把演示脚本作为唯一使用方式。
+```json
+{
+  "sample_count": 2,
+  "changed_count": 1,
+  "cases/0/decision_changed": true,
+  "cases/1/decision_changed": false,
+  "global_equivalence_proven": false
+}
+```
 
-## 预计交付与验收方式
+## 三、实现和验证结构
 
-交付目标包括公开 MoonBit 源码、库接口、CLI、三个完整场景及输入来源、单元与集成测试、适用目标的 CI、安装使用说明、设计与边界文档、源码统计及独立安装验证记录。有效生产 MoonBit 源码内部估算为 5,000–8,000 行，测试、示例、生成语料和辅助脚本分别统计，该估算不作为官方验收门槛。
+领域计算由 MoonBit 完成，宿主侧负责文件、HTTP、进程或独立参考算法。可复用接口保持 execute(Json)→Json 与语义值 run 入口；实际公开接口以 pkg.generated.mbti 为准。当前根目录包含 316 项 MoonBit 测试声明，CLI 固定夹具 107 组；其中自动生成的夹具测试按生成测试统计，不算额外生产实现。
 
-固定真值与类型语料、独立参考求值、十万事实的决策统计一致；解释链能定位每个决定的命中规则。失败验证覆盖非法类型、缺字段、冲突策略、表达式资源超限和非法引用。十月不增加通用脚本执行或外部代码插件。
+复核路径为四后端核心测试、真实 CLI 夹具、独立参考检查、宿主场景（适用时）、公开 CI 和公共包独立安装。新增检查运行：
 
-## 原创性、来源与开源计划
+```sh
+moon update
+moon test --target js
+moon test --target wasm
+moon test --target wasm-gc
+moon test --target native
+moon build --target js
+node scripts/check.mjs
+python -B scripts/followup_reference.py
+moon run cmd/main --target js -- examples/followup-20261018.json
+```
 
-拟原创实现本项目的数据模型、处理流程和业务判断，不把九月项目旧代码或简单拆分计入此次新成果。[Open Policy Agent 规则设计参考](https://www.openpolicyagent.org/docs/policy-language)作为设计或标准参考，当前没有声明已复制该项目代码。计划采用 Apache-2.0；实际采用的依赖、参考实现和数据集逐项记录版本、链接、许可证与使用范围。生态查重仍须补齐同类项目的接口、能力和差异证据，不能声称已证明唯一性。
+native 需要 C 编译器；标为带变化/问题的有效报告可能使用退出码 2。实际通过记录和对应源码版本见交付核对表，命令列表本身不作为通过证明。
 
-## 制作安排与技术取舍
+## 四、开发记录与来源
 
-本项目属于第 1 轮：先完成模型与接口，再交付可运行的核心链路和三个场景，随后完成规模验证、失败路径、当前提交的 CI 与公开包独立消费验证。主要取舍是让统一核心能力服务多个场景，同时将运行环境和暂不支持的语义写清；完成状态以实际源码和验证记录更新。目标截止日期为 2026-10-31，进度以实际里程碑为准。
+本次提交按错误修正、针对性测试、领域实现、独立参考和版本文档记录，均使用真实日期并保留原有历史。2026-09-01 后的数量与哈希由 GitHub API 核查；达到数量条件不意味着所有提交已获主办方认定。
 
+共同 JSON/CLI 脚手架按基础设施说明，不当作各项目独有创新。实际依赖、参考与许可见 THIRD_PARTY.md；第三方代码、生成夹具和文档不计为独立生产实现。功能有重叠时，不以“纯 MoonBit”“带测试”或“无 I/O”主张唯一性，项目差异应落到可执行机制与案例。
 
-## 已完成版本与原方案的区别 (completed version versus the plan)
+## 五、当前边界
 
-Public repository: https://github.com/123123213weqw/moon-policyforge
+新回放入口接收 decide 定义，不递归执行任意操作。样本回放不证明全输入空间等价；决策表编译本身不证明行互斥，同类项目也具备求值、解释或测试能力，不能把通用能力作为独有性证明。
 
-**Current release: 1.0.0 (2026-10-18), the complete implementation of the proposed scope.** The sections above are the original proposal text from the planning stage and are kept unchanged for reference; the facts below describe what is actually delivered.
-
-- The three usage scenarios (approval admission, tiered discount, data-quality gating) exist as executable fixtures under `examples/`, and the streaming pipeline and browser demo extend them beyond the proposal.
-- The acceptance checks are executable: independent Python oracles for arithmetic and evaluation, two differential fuzzers (500 expressions and 120 rule sets per run) that agree on values and error codes, a 100,000-fact scale check whose decision statistics match a plain-Python oracle, explanation chains that attribute every decision to its matched rule, and failure validation covering illegal types, missing fields, conflict strategies, resource limits and illegal references through a coded E1xxx-E4xxx taxonomy.
-- Deliverables are in the repository: public MoonBit source, library interface, CLI, the scenarios with their input sources, 206 white-box tests plus 101 CLI fixtures and a nine-stage verification ladder, CI for four backends with warnings denied, installation and usage documentation, design and boundary documents, source statistics (`scripts/stats.py`, snapshot in PROJECT_STATS.md) and independent consumption verification of the published package (`scripts/consume.sh`).
-- The source line-count range in the proposal was an internal planning estimate; it is not an acceptance threshold and is not reported as a result. `scripts/stats.py` reports the actual numbers.
-- Not done and not claimed: general scripting, external code plugins, a remote policy service, or a full static type inference — the remaining limits are listed in `docs/boundaries.md`.
+完整原方案的代码量、性能目标与用户效果不自动沿用为当前成果；统计以源码实际值及本机/CI 的测量记录为准。比赛准入、团队/项目数解释和最终审核仍由主办方决定，本轮不代提交报名。
