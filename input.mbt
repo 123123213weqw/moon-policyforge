@@ -1,7 +1,8 @@
 ///|
+#derive(Eq)
 pub(all) suberror InputError {
   InputError(String)
-} derive(Eq)
+}
 
 ///|
 /// Errors print their bare message (`E3002 expected array`), so CLI output

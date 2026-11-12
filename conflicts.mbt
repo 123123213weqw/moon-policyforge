@@ -18,12 +18,13 @@
 /// keeping every reported relation sound.
 
 ///|
+#derive(Eq)
 priv enum Bound {
   Lower(Double, Bool) // value, is_inclusive
   Upper(Double, Bool)
   Equal(Double)
   NotEqual(Double)
-} derive(Eq)
+}
 
 ///|
 priv struct Atom {

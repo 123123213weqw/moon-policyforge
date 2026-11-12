@@ -1,4 +1,5 @@
 ///|
+#derive(Eq, Debug)
 pub(all) enum Value {
   Null
   Bool(Bool)
@@ -6,7 +7,7 @@ pub(all) enum Value {
   String(String)
   Array(Array[Value])
   Object(Map[String, Value])
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend Value with @moonbitlang/core/debug.Debug::{to_repr}
